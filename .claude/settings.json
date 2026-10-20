@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:/Users/jung/Desktop/my_service/.claude/hooks/prd_lock.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:/Users/jung/Desktop/my_service/.claude/hooks/prd_name_guide.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

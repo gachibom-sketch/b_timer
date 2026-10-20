@@ -1,0 +1,21 @@
+# 비밀 키가 들어 있는 파일
+.env
+.streamlit/secrets.toml
+
+# 파이썬이 실행할 때 저절로 만드는 임시 파일
+__pycache__/
+*.pyc
+
+# 브라우저 시험 때 생기는 화면 사진·기록
+.playwright-mcp/
+
+# 사람마다 다른 Claude Code 개인 설정
+.claude/settings.local.json
+
+# 파이썬 가상 환경 (패키지 설치 폴더)
+.venv/
+venv/
+
+# 윈도우가 폴더마다 저절로 만드는 파일
+Thumbs.db
+desktop.ini
