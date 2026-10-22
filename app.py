@@ -3,6 +3,7 @@ import os
 import random
 import re
 import time
+from datetime import datetime, timedelta, timezone
 
 import requests
 import streamlit as st
@@ -24,7 +25,9 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     st.stop()
 
 PROGRESS_URL = f"{SUPABASE_URL}/rest/v1/progress"
+EVENT_URL = f"{SUPABASE_URL}/rest/v1/event_log"  # 분석 이벤트 4개 — 날짜·시각·테스터·이벤트 (판정 지표 ①~④ 를 셈)
 HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+KST = timezone(timedelta(hours=9))  # 이벤트 날짜·시각은 한국 시각으로 남김
 DEMO_TESTER = "0"  # 시연 모드 전용 줄 — 실제 테스터 줄과 섞이지 않음 (수용 기준 19번)
 
 # 한 세트의 단계별 길이(초) — 시연 모드(…/?demo=1)는 집중 1분 + 휴식 12초
@@ -205,9 +208,33 @@ def time_text(seconds):  # 남은 초 → "12:30"
     return f"{minutes:02d}:{seconds:02d}"
 
 
+def log_event(event, at=None):  # 분석 이벤트를 event_log 에 남김 — 세트 시작·세트 완료·그만하기·카드 저장 (시연 모드는 남기지 않음)
+    if st.session_state.get("demo"):
+        return
+    moment = datetime.fromtimestamp(at or time.time(), KST)  # 일어난 시각을 직접 적음 — 늦게 보내도 시각이 틀리지 않게
+    waiting = st.session_state.setdefault("pending_events", [])  # 보내지 못한 이벤트는 모아 두었다가 다음에 함께 보냄
+    waiting.append({
+        "date": moment.date().isoformat(),
+        "time": moment.strftime("%H:%M:%S"),
+        "tester": st.session_state.get("tester"),  # 그냥 주소면 비워 둠
+        "event": event,
+    })
+    try:
+        response = requests.post(EVENT_URL, headers={**HEADERS, "Prefer": "return=minimal"}, json=waiting, timeout=5)
+        response.raise_for_status()
+        waiting.clear()
+    except requests.HTTPError as error:
+        status = error.response.status_code
+        if 400 <= status < 500 and status != 429:  # 다시 보내도 안 될 오류 — 계속 막히지 않게 버림
+            waiting.clear()
+    except requests.RequestException:
+        pass  # 인터넷이 끊김 — 모아 두었다가 다음 이벤트 때 다시 보냄, 타이머는 그대로 씀
+
+
 def start_set():  # 시작 · 다음 세트 시작 — 지금 시각을 세트 시작 시각으로 두고 브라우저에도 남김
     st.session_state.set_started_at = time.time()
     keep_local(started_at=st.session_state.set_started_at)
+    log_event("세트 시작")
 
 
 def end_set():  # 세트를 끝내고 대기로 돌아감
@@ -218,6 +245,8 @@ def end_set():  # 세트를 끝내고 대기로 돌아감
 
 def complete_set():  # 휴식까지 마친 세트만 누적 +1 (그만둔 세트는 여기에 오지 않음)
     count = current_count() + 1
+    length = set_length()
+    log_event("세트 완료", at=st.session_state.set_started_at + length["집중"] + length["휴식"])  # 실제로 끝난 시각 — 탭을 닫아 둔 사이 끝났어도
     end_set()
     st.session_state.pop("count_input", None)  # 시연 모드 칸도 새 누적 수로 맞춤
     if st.session_state.get("demo"):
@@ -297,6 +326,7 @@ def count_notice():  # D-1E 누적 세트 수 안내 창
 def stop_confirm():  # 1-D 그만하기 확인 창 — 창이 떠 있는 동안에도 시간은 흐름
     left, right = st.columns(2)
     if left.button("그만하기", width="stretch"):
+        log_event("그만하기")
         end_set()
         st.rerun()
     if right.button("계속하기", type="primary", width="stretch"):
@@ -422,7 +452,8 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
     night_sky(count, height=480, width="270px", footer=footer)  # 9:16
     st.caption("9:16 카드 미리보기")
 
-    if st.button("이미지 저장"):  # 누르면 PNG 파일로 내려받기 — 8단계에서 만듦
+    if st.button("이미지 저장"):  # 누르면 PNG 파일로 내려받기 — 카드 순서(4번)에서 만듦
+        log_event("카드 저장")  # PRD 측정 한계대로 "이미지 저장"을 누른 것까지 셈
         st.write("[만들어졌습니다]")
 
 
