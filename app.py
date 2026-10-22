@@ -8,6 +8,7 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 
+from browser_store import browser_store
 from chatbot import chatbot
 from timer_parts import set_engine, timer_dial
 
@@ -111,15 +112,70 @@ def stored_count(owner):  # Supabase 에 저장된 그 줄의 누적 세트 수
         st.stop()
 
 
-def record_owner():  # 누적 세트 수를 남기는 줄 — 시연 모드면 시연 줄, 아니면 테스터 번호 (그냥 주소면 None)
-    return DEMO_TESTER if st.session_state.get("demo") else st.session_state.get("tester")
+# 기록을 남기는 곳 — 테스터 링크: Supabase 가 기준이고 브라우저에 사본 · 그냥 주소: 브라우저에만 ·
+# 시연 모드: Supabase 시연 줄에만 · 진행 중 세트의 시작 시각: 브라우저에만 (탭을 닫았다 열어도 이어지게)
+def owner_key():  # 이 브라우저에 남기는 기록의 이름 — 테스터 번호마다 따로, 그냥 주소는 guest, 시연 모드는 남기지 않음
+    if st.session_state.get("demo"):
+        return None
+    tester = st.session_state.get("tester")
+    return f"t{tester}" if tester else "guest"
+
+
+def local_record():  # 이 브라우저의 기록 — 누적 수, Supabase 에 올렸는지, 진행 중 세트의 시작 시각
+    blank = {"count": 0, "synced": True, "started_at": None}
+    return {**blank, **st.session_state.setdefault("local_records", {}).get(owner_key(), {})}
+
+
+def keep_local(**changes):  # 브라우저 기록을 고침 — 다음에 화면을 그릴 때 브라우저 부품이 실제로 씀
+    key = owner_key()
+    if key is not None:
+        st.session_state.setdefault("local_records", {})[key] = {**local_record(), **changes}
+
+
+def sync_browser():  # 화면을 그리기 전에 브라우저 기록을 한 번 읽어 오고, 그 뒤로는 바뀐 값을 씀
+    key = owner_key()
+    records = st.session_state.setdefault("local_records", {})
+    if key is None or key in records:
+        browser_store(key, records.get(key))
+        return
+    saved = browser_store(key, None)
+    if not saved or saved.get("key") != key:  # 브라우저가 아직 알려 주지 않음 — 0세트 화면이 깜빡이지 않게 잠깐 기다림
+        st.caption("기록을 불러오는 중…")
+        st.stop()
+    values = saved.get("values") or {}
+    records[key] = {
+        "count": int(values.get("count") or 0),
+        "synced": values.get("synced") is not False,
+        "started_at": values.get("started_at"),
+    }
+    if st.session_state.get("set_started_at") is None and records[key]["started_at"]:  # 탭을 닫기 전 진행 중이던 세트를 이어 감
+        st.session_state.set_started_at = float(records[key]["started_at"])
+
+
+def tester_count(tester):  # 테스터는 Supabase 가 기준 — 브라우저 사본을 맞추고, 저번에 못 올린 세트가 있으면 올림
+    local = local_record()
+    try:
+        remote = load_count(tester)
+        if not local["synced"] and local["count"] > remote:
+            save_count(tester, local["count"])
+            remote = local["count"]
+    except requests.RequestException:  # Supabase 가 안 되면 이 브라우저의 기록으로 보여 줌
+        if not st.session_state.get("offline_noticed"):
+            st.toast("인터넷이 불안정해 이 PC 에 남은 기록으로 보여 드려요.")
+            st.session_state.offline_noticed = True
+        return local["count"]
+    if (local["count"], local["synced"]) != (remote, True):
+        keep_local(count=remote, synced=True)
+    return remote
 
 
 def current_count():  # 화면에 보일 누적 세트 수
-    owner = record_owner()
-    if owner is None:  # 그냥 주소 — 지금은 이 탭을 닫으면 사라짐 (3단계에서 브라우저 저장으로 바꿈)
-        return st.session_state.get("session_count", 0)
-    return stored_count(owner)
+    if st.session_state.get("demo"):
+        return stored_count(DEMO_TESTER)  # 시연 줄 — 브라우저에는 남기지 않음
+    tester = st.session_state.get("tester")
+    if tester is None:
+        return local_record()["count"]  # 그냥 주소 — 이 브라우저에만 남김
+    return tester_count(tester)
 
 
 def set_length():  # 지금 쓰는 단계별 길이(초) — 시연 모드면 집중 1분 + 휴식 12초
@@ -149,35 +205,43 @@ def time_text(seconds):  # 남은 초 → "12:30"
     return f"{minutes:02d}:{seconds:02d}"
 
 
-def start_set():  # 시작 · 다음 세트 시작 — 지금 시각을 세트 시작 시각으로 둠
+def start_set():  # 시작 · 다음 세트 시작 — 지금 시각을 세트 시작 시각으로 두고 브라우저에도 남김
     st.session_state.set_started_at = time.time()
+    keep_local(started_at=st.session_state.set_started_at)
 
 
 def end_set():  # 세트를 끝내고 대기로 돌아감
     st.session_state.set_started_at = None
     st.session_state.confirming = False
+    keep_local(started_at=None)
 
 
 def complete_set():  # 휴식까지 마친 세트만 누적 +1 (그만둔 세트는 여기에 오지 않음)
     count = current_count() + 1
-    owner = record_owner()
     end_set()
     st.session_state.pop("count_input", None)  # 시연 모드 칸도 새 누적 수로 맞춤
-    if owner is None:
-        st.session_state.session_count = count
-        return
+    if st.session_state.get("demo"):
+        owner = DEMO_TESTER
+    else:
+        owner = st.session_state.get("tester")
+        if owner is None:  # 그냥 주소 — 브라우저에만 남김
+            keep_local(count=count)
+            return
     try:
-        save_count(owner, count)
+        save_count(owner, count)  # 서버(Supabase progress 표)에 저장
+        keep_local(count=count, synced=True)
     except requests.RequestException:
+        keep_local(count=count, synced=False)  # 테스터면 브라우저에 남겨 두었다가 다음에 올림
         st.session_state.set_save_failed = True
 
 
-def finish_if_done(current):  # 세트 시간이 다 지났으면 세트 완료로 치고 화면2로 — 다른 탭에 갔다 와도 같음
+def finish_if_done(current):  # 세트 시간이 다 지났으면 세트 완료로 치고 화면2로 — 다른 탭에 갔다 오거나 탭을 닫았다 열어도 같음
     phase = set_phase()
     if phase and phase[0] == "완료":
         complete_set()
         if current.url_path != sky_page.url_path:
             st.switch_page(sky_page)
+        st.rerun()  # 바뀐 기록을 바로 브라우저에 쓰도록 한 번 더 그림 — 그 전에 탭을 닫아도 세트가 두 번 세어지지 않게
 
 
 def night_sky(count, height, width="100%", footer=""):
@@ -332,7 +396,7 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
         )
 
     if st.session_state.pop("set_save_failed", False):
-        st.error("이번 세트를 저장하지 못했어요. 인터넷 연결을 확인해 주세요.")
+        st.error("이번 세트를 Supabase 에 저장하지 못했어요. 이 PC 에 남겨 두었다가 다음에 열 때 다시 올릴게요.")
     if st.session_state.pop("save_failed", False):
         st.error("저장하지 못했어요. 잠시 뒤 다시 넣어 주세요.")
     if st.session_state.pop("count_notice", False):
@@ -367,6 +431,7 @@ sky_page = st.Page(sky_screen, title="밤하늘", url_path="sky")
 card_page = st.Page(card_screen, title="카드 미리보기", url_path="card", visibility="hidden")  # 탭에는 없고 "카드 만들기"로만 들어옴
 
 page = st.navigation([timer_page, sky_page, card_page], position="top")  # 위쪽 탭: 타이머 · 밤하늘
+sync_browser()  # 브라우저 기록을 먼저 읽어야 탭을 닫기 전 진행 중이던 세트를 이어 갈 수 있음
 finish_if_done(page)
 chatbot()  # 오른쪽 아래 상담 챗봇 — 화면 1·2·3 모두에 뜸
 page.run()

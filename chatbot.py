@@ -2,13 +2,13 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import anthropic
+import openai
 import requests
 import streamlit as st
 
 # 오른쪽 아래 상담 챗봇 — PRD.md 를 읽고 별도로에 대해 묻는 말에 답함 (화면 1·2·3 공통)
-MODEL = "claude-opus-5-5"  # Claude API 기본 모델
-EFFORT = "low"  # 상담 답은 세 문장이라 생각을 짧게 해 빨리 답함 (Opus 5.5 는 생각을 끌 수 없고 effort 로 조절)
+MODEL = "gpt-6-astra"  # 공식 문서(developers.openai.com/api/docs)의 시작 안내서가 쓰는 모델 — helper.py 와 같음
+EFFORT = "low"  # 상담 답은 세 문장이라 생각을 짧게 해 빨리 답함
 PRD_PATH = Path(__file__).with_name("PRD.md")
 GREETING = "안녕하세요! 별도로에 대해 궁금한 걸 물어보세요 ✨"
 HISTORY_LIMIT = 20  # 지난 대화는 최근 20개까지만 보여 줌
@@ -57,29 +57,23 @@ STYLE = """
 """
 
 
-class Refused(Exception):  # Claude 와 대신 답할 모델이 모두 답을 거절함
+class Refused(Exception):  # 모델이 답을 거절했거나 빈 답을 줌
     pass
 
 
-def ask_claude(question):  # 지난 대화 + 이번 질문을 보내고 답 글을 받음 — Claude API 는 대화를 기억하지 않아 매번 함께 보냄
-    # 바탕 지시(PRD.md 포함)는 대화를 시작할 때 한 번 정해 두고 바꾸지 않음
-    # — 대화 중간에 앞부분이 바뀌면 Opus 5.5 가 오류를 낼 수 있고, 캐시도 맞지 않음
+def ask_openai(question):  # 지난 대화 + 이번 질문을 보내고 답 글을 받음 (Responses API) — 대화는 매번 함께 보냄
+    # 바탕 지시(PRD.md 포함)는 대화를 시작할 때 한 번 정해 두고 바꾸지 않음 — 앞부분이 같아야 OpenAI 가 저절로 캐시해 싸고 빠름
     guide = st.session_state.setdefault("chat_guide", GUIDE.format(prd=PRD_PATH.read_text(encoding="utf-8")))
     history = [{"role": role, "content": text} for role, text in st.session_state.chat_messages]
-    client = anthropic.Anthropic(timeout=60.0, max_retries=2)  # 키는 ANTHROPIC_API_KEY 에서 읽음, 한 번에 최대 60초·다시 시도 2번
-    response = client.beta.messages.create(
+    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY", "").strip(), timeout=60.0, max_retries=2)  # 한 번에 최대 60초·다시 시도 2번
+    response = client.responses.create(
         model=MODEL,
-        max_tokens=16000,  # 생각한 몫도 여기에 들어가므로 넉넉히
-        system=guide,
-        cache_control={"type": "ephemeral"},  # 길이가 긴 바탕 지시를 캐시해 두 번째 질문부터 싸고 빠르게
-        output_config={"effort": EFFORT},
-        betas=["server-side-fallback-2026-07-01"],
-        fallbacks="default",  # 안전 검사가 잘못 거절하면 Anthropic 이 권하는 다른 모델이 대신 답함
-        messages=history + [{"role": "user", "content": question}],
+        instructions=guide,
+        input=history + [{"role": "user", "content": question}],
+        reasoning={"effort": EFFORT},
+        store=False,  # 대화를 OpenAI 쪽에 남기지 않음 — 대화는 매번 함께 보내므로 남길 필요가 없음
     )
-    if response.stop_reason == "refusal":
-        raise Refused()
-    text = "".join(block.text for block in response.content if block.type == "text").strip()  # 글 덩어리만 모음
+    text = response.output_text.strip()  # 거절하면 글 대신 거절 덩어리만 와서 비어 있음
     if not text:
         raise Refused()
     return text
@@ -131,14 +125,18 @@ def with_line_breaks(text):  # 마크다운은 줄바꿈 하나를 무시하므�
 def error_text(error):  # 실패 까닭을 사람이 읽을 말로 — 좁은 경우부터 차례로 봄
     if isinstance(error, Refused):
         return "이 질문에는 답하지 못했어요. 별도로에 대해 다르게 물어봐 주세요."
-    if isinstance(error, (anthropic.AuthenticationError, anthropic.PermissionDeniedError)):
-        return "답을 받지 못했어요. .env 의 ANTHROPIC_API_KEY 가 맞는지 확인해 주세요."
-    if isinstance(error, (anthropic.RateLimitError, anthropic.InternalServerError)):  # 너무 자주 물었거나 Claude 서버가 붐빔
-        return "지금 Claude 가 붐벼요. 잠시 뒤 다시 보내 주세요."
-    if isinstance(error, anthropic.APIConnectionError):  # 인터넷이 끊겼거나 60초 안에 답이 오지 않음
+    if isinstance(error, (openai.AuthenticationError, openai.PermissionDeniedError)):
+        return "답을 받지 못했어요. .env 의 OPENAI_API_KEY 가 맞는지 확인해 주세요."
+    if isinstance(error, openai.RateLimitError):
+        if "insufficient_quota" in (getattr(error, "type", None), getattr(error, "code", None)):  # 크레딧·결제 한도를 다 씀
+            return "OpenAI 크레딧을 다 썼어요. OpenAI 결제 화면에서 크레딧을 충전해 주세요."
+        return "지금 너무 자주 물었어요. 잠시 뒤 다시 보내 주세요."
+    if isinstance(error, openai.InternalServerError):  # OpenAI 서버가 붐빔
+        return "지금 OpenAI 가 붐벼요. 잠시 뒤 다시 보내 주세요."
+    if isinstance(error, openai.APIConnectionError):  # 인터넷이 끊겼거나 60초 안에 답이 오지 않음
         return "답을 받지 못했어요. 인터넷 연결을 확인하고 잠시 뒤 다시 해 주세요."
-    if isinstance(error, anthropic.APIStatusError):
-        return f"답을 받지 못했어요. (Claude 응답 {error.status_code})"
+    if isinstance(error, openai.APIStatusError):
+        return f"답을 받지 못했어요. (OpenAI 응답 {error.status_code})"
     return "답을 받지 못했어요. 잠시 뒤 다시 해 주세요."
 
 
@@ -148,8 +146,8 @@ def answer(question, box):  # 대화창에 묻고 답을 보여 준 뒤 답 글�
         with st.chat_message("assistant", avatar="🤖"):
             try:
                 with st.spinner("답을 찾는 중…"):
-                    reply = ask_claude(question)
-            except (anthropic.APIError, Refused) as error:
+                    reply = ask_openai(question)
+            except (openai.APIError, Refused) as error:
                 st.error(error_text(error))
                 return None  # 실패한 질문은 대화에도 표에도 남기지 않음
             st.write(with_line_breaks(reply))
@@ -194,8 +192,8 @@ def chatbot():
             for role, text in messages:
                 st.chat_message(role, avatar="🤖" if role == "assistant" else None).write(with_line_breaks(text))
 
-        if not os.getenv("ANTHROPIC_API_KEY", "").strip():
-            st.error(".env 의 ANTHROPIC_API_KEY 가 비어 있어요. 값을 넣어 주세요.")
+        if not os.getenv("OPENAI_API_KEY", "").strip():
+            st.error(".env 의 OPENAI_API_KEY 가 비어 있어요. 값을 넣어 주세요.")
             return
 
         question = st.chat_input("궁금한 점을 적어 주세요", key="chatbot_input")
