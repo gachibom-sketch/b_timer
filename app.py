@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 from browser_store import browser_store
 from chatbot import chatbot
+from sky_parts import sky_view
 from timer_parts import set_engine, timer_dial
 
 st.set_page_config(page_title="별도로")
@@ -64,6 +65,19 @@ def star_counts(count):  # 10개씩 모이면 한 단계 큰 별로 합쳐짐
         "중간별": count // 10 % 10,
         "작은별": count % 10,
     }
+
+
+def layer_counts(count):  # 작은별부터 대왕별까지 그릴 개수 — 대왕별 다음 단계가 PRD.md 에 없어서 10개까지만 그림
+    counts = star_counts(count)
+    return [min(counts[kind], 10) for kind in reversed(STAR_LOOK)]
+
+
+def star_slots(top_limit):  # 별 종류마다 10자리(왼쪽 %, 위 %) — 종류마다 자리가 정해져 있어, 숫자를 바꿔도 있던 별은 그 자리에 있음
+    slots = {}
+    for kind in STAR_LOOK:
+        spot = random.Random(kind)
+        slots[kind] = [[round(spot.uniform(6, 90), 1), round(spot.uniform(6, top_limit), 1)] for _ in range(10)]
+    return slots
 
 
 def focus_time_text(count):  # 끝까지 마친 세트 × 25분
@@ -247,6 +261,7 @@ def complete_set():  # 휴식까지 마친 세트만 누적 +1 (그만둔 세트
     count = current_count() + 1
     length = set_length()
     log_event("세트 완료", at=st.session_state.set_started_at + length["집중"] + length["휴식"])  # 실제로 끝난 시각 — 탭을 닫아 둔 사이 끝났어도
+    st.session_state.arrival = {"id": st.session_state.set_started_at, "count": count}  # 화면2 에서 별똥별·합쳐지는 연출을 한 번 보여 줌
     end_set()
     st.session_state.pop("count_input", None)  # 시연 모드 칸도 새 누적 수로 맞춤
     if st.session_state.get("demo"):
@@ -273,25 +288,33 @@ def finish_if_done(current):  # 세트 시간이 다 지났으면 세트 완료�
         st.rerun()  # 바뀐 기록을 바로 브라우저에 쓰도록 한 번 더 그림 — 그 전에 탭을 닫아도 세트가 두 번 세어지지 않게
 
 
-def night_sky(count, height, width="100%", footer=""):
-    top_limit = 55 if footer else 85  # 카드는 별이 위 2/3에만 뜸 (3-A)
+def night_sky(count, height):  # 화면2 밤하늘 — 방금 마친 세트가 있으면 별똥별·합쳐지는 연출을 한 번 보여 줌
+    arrival = st.session_state.get("arrival")
+    if arrival and arrival["count"] != count:  # 시연 모드에서 누적 수를 바꾸면 연출 없이 바로 그 값으로 (D-1)
+        arrival = None
+    slots = star_slots(85)
+    sky_view(
+        layers=[{"mark": STAR_LOOK[kind][0], "size": STAR_LOOK[kind][1], "slots": slots[kind]} for kind in reversed(STAR_LOOK)],
+        counts=layer_counts(count),
+        height=height,
+        label=f"밤하늘 — 누적 {count}세트",
+        arrival=arrival["id"] if arrival else None,
+        before=layer_counts(count - 1) if arrival else None,
+    )
+
+
+def card_sky(count, footer):  # 화면3 카드의 밤하늘 — 움직임 없는 그림, 별은 위 2/3에만 뜸 (3-A)
+    slots = star_slots(55)
     parts = []
     for kind, n in star_counts(count).items():
         mark, size = STAR_LOOK[kind]
-        spot = random.Random(kind)  # 종류마다 자리가 정해져 있어, 숫자를 바꿔도 있던 별은 그 자리에 있음
-        for _ in range(min(n, 10)):  # 대왕별 다음 단계가 PRD.md 에 없어서 10개까지만 그림
-            left, top = spot.uniform(6, 90), spot.uniform(6, top_limit)
+        for left, top in slots[kind][:n]:  # 대왕별 다음 단계가 PRD.md 에 없어서 10개까지만 그림
             parts.append(
                 f'<span style="position:absolute; left:{left:.1f}%; top:{top:.1f}%; '
                 f'font-size:{size}px; line-height:1; color:#fff;">{mark}</span>'
             )
-    if count == 0 and not footer:
-        parts.append(
-            '<div style="position:absolute; inset:0; display:flex; align-items:center; '
-            'justify-content:center; color:#bbb;">첫 세트를 마치면 별이 떠요</div>'
-        )
     st.markdown(
-        f'<div style="position:relative; height:{height}px; width:{width}; margin:0 auto; '
+        '<div style="position:relative; height:480px; width:270px; margin:0 auto; '
         f'background:#1f1f24; border-radius:8px; overflow:hidden;">{"".join(parts)}{footer}</div>',
         unsafe_allow_html=True,
     )
@@ -449,7 +472,7 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
         '<div style="font-size:12px; color:#999; margin-top:14px;">별도로</div>'
         "</div>"
     )
-    night_sky(count, height=480, width="270px", footer=footer)  # 9:16
+    card_sky(count, footer)  # 9:16
     st.caption("9:16 카드 미리보기")
 
     if st.button("이미지 저장"):  # 누르면 PNG 파일로 내려받기 — 카드 순서(4번)에서 만듦
