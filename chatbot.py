@@ -2,13 +2,13 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import anthropic
 import requests
 import streamlit as st
-from google import genai
-from google.genai import types
 
 # 오른쪽 아래 상담 챗봇 — PRD.md 를 읽고 별도로에 대해 묻는 말에 답함 (화면 1·2·3 공통)
-MODEL = "gemini-3.5-flash-lite"  # 공식 문서(ai.google.dev/gemini-api/docs/models)의 권장 Flash-Lite 모델 — 3.8 Flash 가 느려서 바꿈
+MODEL = "claude-opus-5-5"  # Claude API 기본 모델
+EFFORT = "low"  # 상담 답은 세 문장이라 생각을 짧게 해 빨리 답함 (Opus 5.5 는 생각을 끌 수 없고 effort 로 조절)
 PRD_PATH = Path(__file__).with_name("PRD.md")
 GREETING = "안녕하세요! 별도로에 대해 궁금한 걸 물어보세요 ✨"
 HISTORY_LIMIT = 20  # 지난 대화는 최근 20개까지만 보여 줌
@@ -57,18 +57,32 @@ STYLE = """
 """
 
 
-def ask_gemini(question, previous_id):  # PRD.md 를 바탕 지시로 붙여 묻고, 앞 대화에 이어서 답을 받음
-    client = genai.Client(
-        api_key=os.getenv("GEMINI_API_KEY", "").strip(),
-        http_options=types.HttpOptions(timeout=60_000, retry_options=types.HttpRetryOptions(attempts=2)),
-    )
-    return client.interactions.create(
+class Refused(Exception):  # Claude 와 대신 답할 모델이 모두 답을 거절함
+    pass
+
+
+def ask_claude(question):  # 지난 대화 + 이번 질문을 보내고 답 글을 받음 — Claude API 는 대화를 기억하지 않아 매번 함께 보냄
+    # 바탕 지시(PRD.md 포함)는 대화를 시작할 때 한 번 정해 두고 바꾸지 않음
+    # — 대화 중간에 앞부분이 바뀌면 Opus 5.5 가 오류를 낼 수 있고, 캐시도 맞지 않음
+    guide = st.session_state.setdefault("chat_guide", GUIDE.format(prd=PRD_PATH.read_text(encoding="utf-8")))
+    history = [{"role": role, "content": text} for role, text in st.session_state.chat_messages]
+    client = anthropic.Anthropic(timeout=60.0, max_retries=2)  # 키는 ANTHROPIC_API_KEY 에서 읽음, 한 번에 최대 60초·다시 시도 2번
+    response = client.beta.messages.create(
         model=MODEL,
-        input=question,
-        system_instruction=GUIDE.format(prd=PRD_PATH.read_text(encoding="utf-8")),  # 매번 다시 넣어야 함
-        previous_interaction_id=previous_id,  # 첫 질문이면 None
-        generation_config={"thinking_level": "low"},  # 상담 답은 짧으니 생각을 줄여 빨리 답함
+        max_tokens=16000,  # 생각한 몫도 여기에 들어가므로 넉넉히
+        system=guide,
+        cache_control={"type": "ephemeral"},  # 길이가 긴 바탕 지시를 캐시해 두 번째 질문부터 싸고 빠르게
+        output_config={"effort": EFFORT},
+        betas=["server-side-fallback-2026-07-01"],
+        fallbacks="default",  # 안전 검사가 잘못 거절하면 Anthropic 이 권하는 다른 모델이 대신 답함
+        messages=history + [{"role": "user", "content": question}],
     )
+    if response.stop_reason == "refusal":
+        raise Refused()
+    text = "".join(block.text for block in response.content if block.type == "text").strip()  # 글 덩어리만 모음
+    if not text:
+        raise Refused()
+    return text
 
 
 def chat_log_url():  # 물은 말과 받은 답은 Supabase 의 chat_log 표에 한 줄씩 남김
@@ -114,13 +128,18 @@ def with_line_breaks(text):  # 마크다운은 줄바꿈 하나를 무시하므�
     return text.strip().replace("\n", "  \n")
 
 
-def error_text(error):  # helper.py 와 같은 기준으로 실패 까닭을 알려 줌
-    status = getattr(error, "status_code", None)  # Gemini 서버가 돌려준 상태 번호 (인터넷이 끊기면 없음)
-    if status in (429, 503):  # 너무 자주 물었거나 Gemini 서버가 붐빔
-        return "지금 Gemini 가 붐벼요. 잠시 뒤 다시 보내 주세요."
-    if status:
-        return "답을 받지 못했어요. .env 의 GEMINI_API_KEY 가 맞는지 확인해 주세요."
-    return "답을 받지 못했어요. 인터넷 연결을 확인하고 잠시 뒤 다시 해 주세요."
+def error_text(error):  # 실패 까닭을 사람이 읽을 말로 — 좁은 경우부터 차례로 봄
+    if isinstance(error, Refused):
+        return "이 질문에는 답하지 못했어요. 별도로에 대해 다르게 물어봐 주세요."
+    if isinstance(error, (anthropic.AuthenticationError, anthropic.PermissionDeniedError)):
+        return "답을 받지 못했어요. .env 의 ANTHROPIC_API_KEY 가 맞는지 확인해 주세요."
+    if isinstance(error, (anthropic.RateLimitError, anthropic.InternalServerError)):  # 너무 자주 물었거나 Claude 서버가 붐빔
+        return "지금 Claude 가 붐벼요. 잠시 뒤 다시 보내 주세요."
+    if isinstance(error, anthropic.APIConnectionError):  # 인터넷이 끊겼거나 60초 안에 답이 오지 않음
+        return "답을 받지 못했어요. 인터넷 연결을 확인하고 잠시 뒤 다시 해 주세요."
+    if isinstance(error, anthropic.APIStatusError):
+        return f"답을 받지 못했어요. (Claude 응답 {error.status_code})"
+    return "답을 받지 못했어요. 잠시 뒤 다시 해 주세요."
 
 
 def answer(question, box):  # 대화창에 묻고 답을 보여 준 뒤 답 글을 돌려줌, 실패하면 None
@@ -129,15 +148,14 @@ def answer(question, box):  # 대화창에 묻고 답을 보여 준 뒤 답 글�
         with st.chat_message("assistant", avatar="🤖"):
             try:
                 with st.spinner("답을 찾는 중…"):
-                    interaction = ask_gemini(question, st.session_state.get("chat_previous_id"))
-            except Exception as error:
+                    reply = ask_claude(question)
+            except (anthropic.APIError, Refused) as error:
                 st.error(error_text(error))
                 return None  # 실패한 질문은 대화에도 표에도 남기지 않음
-            st.write(with_line_breaks(interaction.output_text))
+            st.write(with_line_breaks(reply))
 
-    st.session_state.chat_messages += [("user", question), ("assistant", interaction.output_text)]
-    st.session_state.chat_previous_id = interaction.id  # 다음 질문이 이 대화에 이어지도록
-    return interaction.output_text
+    st.session_state.chat_messages += [("user", question), ("assistant", reply)]  # 다음 질문 때 함께 보낼 대화
+    return reply
 
 
 def past_chats(tester):  # 대화창 아래 지난 대화 목록 — 테스터 대화와 그냥 주소 대화는 서로 섞이지 않음
@@ -176,8 +194,8 @@ def chatbot():
             for role, text in messages:
                 st.chat_message(role, avatar="🤖" if role == "assistant" else None).write(with_line_breaks(text))
 
-        if not os.getenv("GEMINI_API_KEY", "").strip():
-            st.error(".env 의 GEMINI_API_KEY 가 비어 있어요. 값을 넣어 주세요.")
+        if not os.getenv("ANTHROPIC_API_KEY", "").strip():
+            st.error(".env 의 ANTHROPIC_API_KEY 가 비어 있어요. 값을 넣어 주세요.")
             return
 
         question = st.chat_input("궁금한 점을 적어 주세요", key="chatbot_input")
