@@ -10,12 +10,11 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from browser_store import browser_store
-from chatbot import chatbot
+from card_parts import card_png
 from sky_parts import sky_view
 from timer_parts import set_engine, timer_dial
 
 st.set_page_config(page_title="별도로")
-st.sidebar.write("집중 25분과 휴식 5분을 마칠 때마다 밤하늘에 별을 띄워 줍니다.")
 
 # 누적 세트 수는 Supabase 의 progress 표에 테스터마다 한 줄씩 저장함
 load_dotenv()
@@ -30,6 +29,7 @@ EVENT_URL = f"{SUPABASE_URL}/rest/v1/event_log"  # 분석 이벤트 4개 — 날
 HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
 KST = timezone(timedelta(hours=9))  # 이벤트 날짜·시각은 한국 시각으로 남김
 DEMO_TESTER = "0"  # 시연 모드 전용 줄 — 실제 테스터 줄과 섞이지 않음 (수용 기준 19번)
+APP_WIDTH = 390  # 앱 크기 틀의 폭(px) — 와이어프레임의 휴대폰 화면(390 × 844)과 같음
 
 # 한 세트의 단계별 길이(초) — 시연 모드(…/?demo=1)는 집중 1분 + 휴식 12초
 SET_LENGTH = {"집중": 25 * 60, "휴식": 5 * 60}
@@ -58,6 +58,13 @@ STAR_LOOK = {
 }
 
 
+def app_frame():  # 화면을 휴대폰 앱 크기의 한 줄 틀에 담음 — 컴퓨터 브라우저에서 앱처럼 보이게 함 (휴대폰 지원은 비목표)
+    st.html(  # 스타일만 담은 st.html 은 화면에 자리를 차지하지 않음
+        "<style>[data-testid='stMainBlockContainer'] "
+        f"{{ max-width: {APP_WIDTH}px; padding: 76px 16px 48px; }}</style>"  # 위: 맨 위 탭 줄(60) 바로 아래부터 · 아래: 기본 여백(160)을 줄여 빈 스크롤이 없게
+    )
+
+
 def star_counts(count):  # 10개씩 모이면 한 단계 큰 별로 합쳐짐
     return {
         "대왕별": count // 1000,
@@ -78,6 +85,11 @@ def star_slots(top_limit):  # 별 종류마다 10자리(왼쪽 %, 위 %) — 종
         spot = random.Random(kind)
         slots[kind] = [[round(spot.uniform(6, 90), 1), round(spot.uniform(6, top_limit), 1)] for _ in range(10)]
     return slots
+
+
+def star_layers(top_limit):  # 작은별부터 대왕별까지 모양·크기·10자리 — 화면2 밤하늘과 화면3 카드가 함께 씀
+    slots = star_slots(top_limit)
+    return [{"mark": STAR_LOOK[kind][0], "size": STAR_LOOK[kind][1], "slots": slots[kind]} for kind in reversed(STAR_LOOK)]
 
 
 def focus_time_text(count):  # 끝까지 마친 세트 × 25분
@@ -292,9 +304,8 @@ def night_sky(count, height):  # 화면2 밤하늘 — 방금 마친 세트가 �
     arrival = st.session_state.get("arrival")
     if arrival and arrival["count"] != count:  # 시연 모드에서 누적 수를 바꾸면 연출 없이 바로 그 값으로 (D-1)
         arrival = None
-    slots = star_slots(85)
     sky_view(
-        layers=[{"mark": STAR_LOOK[kind][0], "size": STAR_LOOK[kind][1], "slots": slots[kind]} for kind in reversed(STAR_LOOK)],
+        layers=star_layers(85),
         counts=layer_counts(count),
         height=height,
         label=f"밤하늘 — 누적 {count}세트",
@@ -303,20 +314,13 @@ def night_sky(count, height):  # 화면2 밤하늘 — 방금 마친 세트가 �
     )
 
 
-def card_sky(count, footer):  # 화면3 카드의 밤하늘 — 움직임 없는 그림, 별은 위 2/3에만 뜸 (3-A)
-    slots = star_slots(55)
-    parts = []
-    for kind, n in star_counts(count).items():
-        mark, size = STAR_LOOK[kind]
-        for left, top in slots[kind][:n]:  # 대왕별 다음 단계가 PRD.md 에 없어서 10개까지만 그림
-            parts.append(
-                f'<span style="position:absolute; left:{left:.1f}%; top:{top:.1f}%; '
-                f'font-size:{size}px; line-height:1; color:#fff;">{mark}</span>'
-            )
-    st.markdown(
-        '<div style="position:relative; height:480px; width:270px; margin:0 auto; '
-        f'background:#1f1f24; border-radius:8px; overflow:hidden;">{"".join(parts)}{footer}</div>',
-        unsafe_allow_html=True,
+@st.cache_data(max_entries=20)  # 같은 누적 수의 카드는 다시 그리지 않음
+def card_file(count):  # 화면3 카드 그림 — 9:16(1080×1920) PNG, 별은 위 2/3에만 뜸 (3-A)
+    return card_png(
+        layers=star_layers(55),
+        counts=layer_counts(count),
+        title=f"{count}세트",
+        subtitle=f"총 {focus_time_text(count)} 집중",
     )
 
 
@@ -366,7 +370,7 @@ def running_button(shown):  # 2-D 세트 진행 중 — "다음 세트 시작" �
     phase = set_phase()
     if phase is None or phase[0] != shown:
         st.rerun()
-    if st.button(f"{shown} 중 · {time_text(phase[1])} 남음", key="running_button", type="primary"):
+    if st.button(f"{shown} 중 · {time_text(phase[1])} 남음", key="running_button", type="primary", width="stretch"):
         st.switch_page(timer_page)  # 새 세트는 시작하지 않음
 
 
@@ -408,36 +412,36 @@ def demo_box(count):  # D-1 시연 모드 칸 — 누적 세트 수 바꾸기 (�
     with st.container(border=True):
         st.caption("시연 모드")
         st.session_state.setdefault("count_input", str(count))
-        cols = st.columns([2, 1, 1, 1, 1])
-        cols[0].text_input(
+        st.text_input(
             "누적 세트 수",
             key="count_input",
             on_change=apply_count_input,
             placeholder="누적 세트 수",
             label_visibility="collapsed",
         )
-        for col, quick in zip(cols[1:], [9, 23, 150, 1000]):
-            col.button(str(quick), on_click=set_count, args=(quick,))
+        for col, quick in zip(st.columns(4), [9, 23, 150, 1000]):  # 앱 폭이 좁아 빠른 값 단추는 칸 아래 한 줄에 둠
+            col.button(str(quick), on_click=set_count, args=(quick,), width="stretch")
 
 
 def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 진행 중(2-D) · 시연 모드 칸(D-1)
+    app_frame()
     st.title("별도로")
 
     count = current_count()
     demo = st.session_state.get("demo", False)
-    night_sky(count, height=280 if demo else 360)  # 시연 모드는 넣는 칸 자리만큼 하늘이 조금 낮아짐
+    night_sky(count, height=330 if demo else 420)  # 앱 크기 틀(844 높이)에 단추까지 들어가게 · 시연 모드는 넣는 칸 자리만큼 하늘이 낮아짐
     if demo:
         demo_box(count)
     st.write(f"누적 {count}세트 · 총 {focus_time_text(count)} 집중")
 
     phase = set_phase()
     if phase is None:
-        if st.button("다음 세트 시작", type="primary"):
+        if st.button("다음 세트 시작", type="primary", width="stretch"):
             start_set()
             st.switch_page(timer_page)  # 화면1로 가면서 바로 집중이 시작됨
     else:
         running_button(phase[0])
-    if st.button("카드 만들기", disabled=count == 0):  # 0세트면 누를 수 없음
+    if st.button("카드 만들기", disabled=count == 0, width="stretch"):  # 0세트면 누를 수 없음
         st.switch_page(card_page)
     if st.session_state.get("tester") is None:  # 테스터 링크로 들어온 화면에는 두지 않음 — 테스터 기록이 시연과 섞이지 않게
         st.button(
@@ -461,23 +465,24 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
     if count == 0:  # 0세트면 카드를 만들 수 없음 — 주소로 바로 들어와도 밤하늘로 돌려보냄
         st.switch_page(sky_page)
 
+    app_frame()
     st.title("별도로")
     if st.button("←"):
         st.switch_page(sky_page)
 
-    footer = (
-        '<div style="position:absolute; left:0; right:0; bottom:28px; text-align:center; color:#fff;">'
-        f'<div style="font-size:26px; font-weight:700;">{count}세트</div>'
-        f'<div style="font-size:13px; color:#ccc;">총 {focus_time_text(count)} 집중</div>'
-        '<div style="font-size:12px; color:#999; margin-top:14px;">별도로</div>'
-        "</div>"
+    card = card_file(count)
+    with st.container(horizontal_alignment="center"):
+        st.image(card, width=250, caption="9:16 카드 미리보기")  # 내려받는 파일과 같은 그림을 줄여 보여 줌 — 와이어프레임 3-A 처럼 앱 폭의 약 2/3
+    st.download_button(
+        "이미지 저장",
+        data=card,
+        file_name=f"별도로_{count}세트.png",
+        mime="image/png",
+        type="primary",
+        width="stretch",
+        on_click=log_event,  # 내려받은 뒤 화면3 은 그대로 — PRD 측정 한계대로 "이미지 저장"을 눌러 내려받은 것까지 셈
+        args=("카드 저장",),
     )
-    card_sky(count, footer)  # 9:16
-    st.caption("9:16 카드 미리보기")
-
-    if st.button("이미지 저장"):  # 누르면 PNG 파일로 내려받기 — 카드 순서(4번)에서 만듦
-        log_event("카드 저장")  # PRD 측정 한계대로 "이미지 저장"을 누른 것까지 셈
-        st.write("[만들어졌습니다]")
 
 
 timer_page = st.Page(timer_screen, title="타이머", default=True)
@@ -487,7 +492,6 @@ card_page = st.Page(card_screen, title="카드 미리보기", url_path="card", v
 page = st.navigation([timer_page, sky_page, card_page], position="top")  # 위쪽 탭: 타이머 · 밤하늘
 sync_browser()  # 브라우저 기록을 먼저 읽어야 탭을 닫기 전 진행 중이던 세트를 이어 갈 수 있음
 finish_if_done(page)
-chatbot()  # 오른쪽 아래 상담 챗봇 — 화면 1·2·3 모두에 뜸
 page.run()
 if set_phase():  # 세트 동안은 어느 화면이든 세트 엔진을 붙임 — 종소리·화면 꺼짐 막기·단계가 바뀌면 다시 그리기
     set_engine(st.session_state.set_started_at, set_left(), set_length()["휴식"])
