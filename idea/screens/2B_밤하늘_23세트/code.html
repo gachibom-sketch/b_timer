@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html lang="ko" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>별도로 - 밤하늘 (23세트)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,600;0,700;1,700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #000000;
+      color: #EEF0F3;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .font-num {
+      font-family: 'Archivo Narrow', sans-serif;
+      font-feature-settings: "tnum";
+    }
+    .crosshair-corner {
+      position: relative;
+    }
+    .crosshair-corner::before,
+    .crosshair-corner::after {
+      content: '';
+      position: absolute;
+      pointer-events: none;
+    }
+    /* Corner cross marks */
+    .cross-top-left {
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-top-right {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-left {
+      position: absolute;
+      bottom: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-right {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-mark {
+      stroke: #FFEF4D;
+      stroke-width: 1.5;
+    }
+    .glow-yellow {
+      box-shadow: 0 0 16px rgba(255, 239, 77, 0.5);
+    }
+    .glow-text {
+      text-shadow: 0 0 10px rgba(255, 239, 77, 0.4);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-between w-full h-[844px] max-w-[390px] mx-auto overflow-hidden relative selection:bg-[#FFEF4D] selection:text-black">
+<!-- Desktop App Container (1440 max / 720 center content) -->
+<div class="w-full h-full flex flex-col justify-between items-center px-4 pt-6 pb-6 relative">
+<!-- Top Navigation Tabs (Centered within layout) -->
+<header class="w-full max-w-[358px] pt-2 pb-4 flex justify-center items-center">
+<nav class="flex items-center space-x-12 text-lg font-medium tracking-wide">
+<!-- 타이머 탭 (비활성) -->
+<a class="text-[#7C828D] hover:text-[#949AA6] transition-colors pb-2 cursor-pointer" href="#">
+          타이머
+        </a>
+<!-- 밤하늘 탭 (활성: 노란 글자 + 노란 밑줄 + 빛 번짐) -->
+<a class="text-[#FFEF4D] font-bold pb-2 relative flex flex-col items-center glow-text cursor-default" href="#">
+<span class="">밤하늘</span>
+<span class="absolute bottom-0 w-full h-[2.5px] bg-[#FFEF4D] glow-yellow rounded-full"></span>
+</a>
+</nav>
+</header>
+<!-- Main Content Area: Width 720px, Vertical Stack -->
+<main class="w-full max-w-[358px] flex flex-col items-stretch space-y-4 my-auto pb-2">
+<!-- 1. 밤하늘 판 (360px 높이, 모서리 살짝 둥글게, 그라데이션) -->
+<section aria-label="별이 뜨는 밤하늘" class="w-full h-[420px] rounded-xl relative overflow-hidden flex items-center justify-center border border-[#23272F]/60" style="background: linear-gradient(180deg, #0F1216 0%, #171C23 60%, #23272F 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);"><!-- 23세트 별: 10세트 중간별 2개 + 1세트 작은별 3개 (총 5개만 존재) -->
+<!-- 중간별 1 (10세트): 좌표 left: 28%, top: 26% -->
+<div class="absolute pointer-events-none" style="left: 28%; top: 26%; transform: translate(-50%, -50%);">
+<svg class="w-[14px] h-[14px]" fill="none" style="filter: drop-shadow(0 0 6px rgba(255, 239, 77, 0.9)) drop-shadow(0 0 14px rgba(255, 249, 166, 0.6));" viewbox="0 0 24 24">
+<path d="M12 0L14.2 9.2L24 12L14.2 14.8L12 24L9.8 14.8L0 12L9.8 9.2L12 0Z" fill="#FFF9A6"></path>
+</svg>
+</div>
+<!-- 중간별 2 (10세트): 좌표 left: 74%, top: 48% -->
+<div class="absolute pointer-events-none" style="left: 74%; top: 48%; transform: translate(-50%, -50%);">
+<svg class="w-[14px] h-[14px]" fill="none" style="filter: drop-shadow(0 0 6px rgba(255, 239, 77, 0.9)) drop-shadow(0 0 14px rgba(255, 249, 166, 0.6));" viewbox="0 0 24 24">
+<path d="M12 0L14.2 9.2L24 12L14.2 14.8L12 24L9.8 14.8L0 12L9.8 9.2L12 0Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- 작은별 1 (1세트): 좌표 left: 62%, top: 22% -->
+<div class="absolute pointer-events-none" style="left: 62%; top: 22%; transform: translate(-50%, -50%);">
+<div class="w-[5px] h-[5px] rounded-full bg-white" style="box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.85);"></div>
+</div>
+<!-- 작은별 2 (1세트): 좌표 left: 22%, top: 68% -->
+<div class="absolute pointer-events-none" style="left: 22%; top: 68%; transform: translate(-50%, -50%);">
+<div class="w-[5px] h-[5px] rounded-full bg-white" style="box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.85);"></div>
+</div>
+<!-- 작은별 3 (1세트): 좌표 left: 45%, top: 80% -->
+<div class="absolute pointer-events-none" style="left: 45%; top: 80%; transform: translate(-50%, -50%);">
+<div class="w-[5px] h-[5px] rounded-full bg-white" style="box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.85);"></div>
+</div></section>
+<!-- 2. 한 줄 통계 텍스트 -->
+<div class="text-center pt-1 pb-1">
+<p class="text-lg md:text-xl text-[#949AA6] font-medium tracking-tight">누적 <span class="text-[#EEF0F3] font-bold font-num text-2xl mx-0.5">23</span>세트 · 총 <span class="text-[#EEF0F3] font-bold font-num text-2xl mx-0.5">9</span>시간 <span class="text-[#EEF0F3] font-bold font-num text-2xl mx-0.5">35</span>분 집중</p>
+</div>
+<!-- 3. 버튼 영역 -->
+<div class="flex flex-col space-y-4 pt-2">
+<!-- 주 단추: 꽉 찬 노란 직사각형, 각진 모서리, 검고 굵은 글자, 네 모서리 바깥 "+" 십자 표시 -->
+<div class="relative w-full">
+<!-- 4 Corner Crosshairs -->
+<svg class="cross-top-left" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<svg class="cross-top-right" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<svg class="cross-bottom-left" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<svg class="cross-bottom-right" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<button class="w-full h-[52px] bg-[#FFEF4D] hover:bg-[#fff26a] active:bg-[#ebd936] text-[#000000] font-bold text-lg tracking-wider rounded-none transition-colors flex items-center justify-center cursor-pointer shadow-lg" type="button">
+            다음 세트 시작
+          </button>
+</div>
+<!-- 보조 단추: 바탕 없이 #7C828D 얇은 테두리, 누를 수 없는 비활성 상태 (opacity & disabled) -->
+<button class="w-full h-[52px] bg-transparent border border-[#7C828D] text-[#EEF0F3] hover:bg-[#7C828D]/10 active:bg-[#7C828D]/20 font-medium text-lg tracking-wide rounded-none flex items-center justify-center cursor-pointer transition-colors" type="button">
+          카드 만들기
+        </button>
+<!-- 작고 덜 눈에 띄는 글 단추: 시연 모드 -->
+<div class="flex justify-center pt-2">
+<button class="text-xs text-[#7C828D] hover:text-[#949AA6] transition-colors underline-offset-4 hover:underline py-1 px-3 cursor-pointer" type="button">
+            시연 모드
+          </button>
+</div>
+</div>
+</main>
+<!-- Empty Footer Spacer for Centering Balance -->
+<!-- Floating Chatbot Button (Bottom Right) -->
+</div>
+</body></html>
