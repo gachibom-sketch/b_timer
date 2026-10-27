@@ -12,7 +12,7 @@ WIDTH, HEIGHT = 1080, 1920
 SCALE = 4  # 화면 미리보기(270×480) 기준 크기를 카드 크기로 키우는 배수
 FONT_PATH = Path(__file__).with_name("fonts") / "NotoSansKR.ttf"
 BACKGROUND = (31, 31, 36)  # 화면2 밤하늘과 같은 #1f1f24
-TEXT_COLORS = {"title": (255, 255, 255), "subtitle": (204, 204, 204), "name": (153, 153, 153)}
+TEXT_COLORS = {"title": (255, 255, 255), "subtitle": (204, 204, 204), "name": (153, 153, 153), "date": (119, 119, 119)}
 
 
 def font(size, weight):  # 이 글꼴은 굵기를 정하지 않으면 가장 가는 굵기(Thin)로 그려짐
@@ -45,9 +45,15 @@ def draw_stars(layers, counts):  # 별 모양만 흰색으로 칠한 판 — 두
     return big.resize((WIDTH, HEIGHT), Image.LANCZOS)
 
 
-def card_png(layers, counts, title, subtitle):
+def draw_watermark():  # 시연 모드 카드의 "DEMO" 글자만 칠한 판 — 가운데에 비스듬히, 옅게(25%)
+    mark = Image.new("L", (WIDTH, HEIGHT), 0)
+    ImageDraw.Draw(mark).text((WIDTH / 2, HEIGHT / 2), "DEMO", font=font(280, "Bold"), fill=64, anchor="mm")
+    return mark.rotate(30, resample=Image.BICUBIC)  # 카드 가운데를 축으로 왼쪽 아래 → 오른쪽 위로 기울임
+
+
+def card_png(layers, counts, title, subtitle, date, demo=False):
     # layers: 작은별부터 대왕별까지 모양·크기·10자리(왼쪽 %, 위 %) · counts: 종류마다 그릴 개수
-    # title: "23세트" · subtitle: "총 9시간 35분 집중"
+    # title: "23세트" · subtitle: "총 9시간 35분 집중" · date: "2026.10.27 기준" · demo: 시연 모드면 "DEMO" 워터마크를 얹음
     card = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     white = Image.new("RGB", (WIDTH, HEIGHT), (255, 255, 255))
     stars = draw_stars(layers, counts)
@@ -60,6 +66,9 @@ def card_png(layers, counts, title, subtitle):
     pen.text((middle, 1523), title, font=font(104, "Bold"), fill=TEXT_COLORS["title"], anchor="mm")
     pen.text((middle, 1641), subtitle, font=font(52, "Regular"), fill=TEXT_COLORS["subtitle"], anchor="mm")
     pen.text((middle, 1772), "별도로", font=font(48, "Regular"), fill=TEXT_COLORS["name"], anchor="mm")
+    pen.text((middle, 1838), date, font=font(40, "Regular"), fill=TEXT_COLORS["date"], anchor="mm")  # 누적 수가 어느 날까지인지
+    if demo:  # 시연으로 만든 카드가 실제 기록 카드로 오해받지 않게
+        card.paste(white, mask=draw_watermark())
 
     buffer = BytesIO()
     card.save(buffer, "PNG")

@@ -14,7 +14,7 @@ from card_parts import card_png
 from sky_parts import sky_view
 from timer_parts import set_engine, timer_dial
 
-st.set_page_config(page_title="별도로")
+st.set_page_config(page_title="별도로", page_icon="🌟")
 
 # 누적 세트 수는 Supabase 의 progress 표에 테스터마다 한 줄씩 저장함
 load_dotenv()
@@ -314,13 +314,15 @@ def night_sky(count, height):  # 화면2 밤하늘 — 방금 마친 세트가 �
     )
 
 
-@st.cache_data(max_entries=20)  # 같은 누적 수의 카드는 다시 그리지 않음
-def card_file(count):  # 화면3 카드 그림 — 9:16(1080×1920) PNG, 별은 위 2/3에만 뜸 (3-A)
+@st.cache_data(max_entries=20)  # 같은 누적 수·같은 날·같은 모드의 카드는 다시 그리지 않음 — 날이 바뀌면 새로 그림
+def card_file(count, day, demo):  # 화면3 카드 그림 — 9:16(1080×1920) PNG, 별은 위 2/3에만 뜸 (3-A) · 시연 모드면 DEMO 워터마크
     return card_png(
         layers=star_layers(55),
         counts=layer_counts(count),
         title=f"{count}세트",
         subtitle=f"총 {focus_time_text(count)} 집중",
+        date=f"{day} 기준",
+        demo=demo,
     )
 
 
@@ -470,7 +472,8 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
     if st.button("←"):
         st.switch_page(sky_page)
 
-    card = card_file(count)
+    today = datetime.now(KST).strftime("%Y.%m.%d")  # 카드를 만든 날(한국 시각)
+    card = card_file(count, today, st.session_state.get("demo", False))
     with st.container(horizontal_alignment="center"):
         st.image(card, width=250, caption="9:16 카드 미리보기")  # 내려받는 파일과 같은 그림을 줄여 보여 줌 — 와이어프레임 3-A 처럼 앱 폭의 약 2/3
     st.download_button(
