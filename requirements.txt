@@ -1,0 +1,6 @@
+# 배포 서버가 설치할 묶음 — 이 컴퓨터(파이썬 3.14.7)에서 앱이 돌아가는 판과 똑같이 고정함
+# app.py 와 app.py 가 불러오는 파일(browser_store·card_parts·sky_parts·timer_parts)만 셈 — 연습용 페이지는 배포하지 않음
+streamlit==1.65.0  # 화면 전체
+requests==2.34.2  # Supabase 에 기록을 보내고 읽음
+python-dotenv==1.2.4  # 내 컴퓨터에서 .env 의 비밀 값을 읽음 (배포 서버에서는 배포 설정의 비밀 값을 씀)
+pillow==12.3.0  # 화면3 카드 그림(PNG)을 그림
