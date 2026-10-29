@@ -131,11 +131,57 @@
 <!-- 9:16 Card Container (250px × 444px, rounded-xl 12px, border #7C828D/30, background gradient #0F1216 to #23272F) -->
 <article class="w-[250px] h-[444px] card-gradient rounded-xl border border-[rgba(124,130,141,0.3)] flex flex-col overflow-hidden relative shadow-2xl transition-transform duration-300" style="box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7);">
 <!-- Top 2/3: Celestial Night Sky Canvas with naturally scattered stars (2 medium sparkles, 3 small dots) -->
-<div class="relative w-full h-[296px] overflow-hidden"><div class="absolute inset-0 bg-radial from-[#FFEF4D]/[0.05] via-transparent to-transparent pointer-events-none"></div><div class="absolute inset-0 flex items-center justify-center"><div class="relative w-[190px] h-[190px]"><div class="absolute top-[28px] left-[95px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10"><div class="absolute w-10 h-10 rounded-full bg-white/20 blur-sm pointer-events-none"></div><svg class="w-6 h-6 text-white relative z-10" fill="none" style="filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 16px rgba(186, 230, 253, 0.6));" viewbox="0 0 28 28"><path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFFFFF"></path></svg></div><div class="absolute top-[95px] left-[95px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10"><div class="absolute w-10 h-10 rounded-full bg-[#FFEF4D]/15 blur-sm pointer-events-none"></div><svg class="w-6 h-6 text-[#FFEF4D] glow-sparkle relative z-10" fill="none" viewbox="0 0 28 28"><path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFEF4D"></path></svg></div><div class="absolute top-[95px] left-[155px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10"><div class="absolute w-10 h-10 rounded-full bg-[#FFEF4D]/15 blur-sm pointer-events-none"></div><svg class="w-6 h-6 text-[#FFEF4D] glow-sparkle relative z-10" fill="none" viewbox="0 0 28 28"><path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFEF4D"></path></svg></div><div class="absolute top-[95px] left-[35px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 opacity-35"><svg class="w-5 h-5 text-[#FFEF4D] relative z-10" fill="none" viewbox="0 0 28 28"><path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFEF4D"></path></svg></div><div class="absolute top-[162px] left-[95px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10"><div class="w-4 h-4 rounded-full border border-[#7C828D]/50 flex items-center justify-center"><div class="w-1.5 h-1.5 rounded-full bg-[#7C828D]/70"></div></div></div></div></div></div>
+<div class="relative w-full h-[296px] overflow-hidden"><div class="absolute inset-0 bg-radial from-[#FFEF4D]/[0.05] via-transparent to-transparent pointer-events-none"></div><div class="absolute inset-0 flex items-center justify-center"><div class="relative w-[190px] h-[190px]"><!-- Betelgeuse (upper left, reddish-orange glow ✦) -->
+<div class="absolute top-[32px] left-[42px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+<div class="absolute w-10 h-10 rounded-full bg-[#FF8A4D]/25 blur-sm pointer-events-none"></div>
+<svg class="w-6 h-6 text-[#FF9E59] relative z-10" fill="none" style="filter: drop-shadow(0 0 8px rgba(255, 138, 77, 0.9)) drop-shadow(0 0 16px rgba(255, 107, 43, 0.5));" viewbox="0 0 28 28">
+<path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFA05C"></path>
+</svg>
+</div>
+<!-- Bellatrix (upper right, bright 4-point sparkle with soft glow) -->
+<div class="absolute top-[38px] left-[148px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+<div class="absolute w-10 h-10 rounded-full bg-[#FFEF4D]/20 blur-sm pointer-events-none"></div>
+<svg class="w-5 h-5 text-[#FFEF4D] glow-sparkle relative z-10" fill="none" viewbox="0 0 28 28">
+<path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- Orion's Belt: 3 stars diagonal row (Alnitak, Alnilam, Mintaka) -->
+<!-- Alnitak (left): fully lit bright sparkle -->
+<div class="absolute top-[102px] left-[70px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+<div class="absolute w-8 h-8 rounded-full bg-[#FFEF4D]/20 blur-sm pointer-events-none"></div>
+<svg class="w-4 h-4 text-[#FFEF4D] glow-sparkle relative z-10" fill="none" viewbox="0 0 28 28">
+<path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- Alnilam (center): fully lit bright sparkle -->
+<div class="absolute top-[95px] left-[95px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+<div class="absolute w-9 h-9 rounded-full bg-[#FFEF4D]/25 blur-sm pointer-events-none"></div>
+<svg class="w-5 h-5 text-[#FFEF4D] glow-sparkle relative z-10" fill="none" viewbox="0 0 28 28">
+<path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- Mintaka (right): two-thirds lit (~65% opacity) -->
+<div class="absolute top-[88px] left-[120px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10 opacity-65">
+<svg class="w-3.5 h-3.5 text-[#FFEF4D] relative z-10" fill="none" viewbox="0 0 28 28">
+<path d="M14 0C14 7.732 20.268 14 28 14C20.268 14 14 20.268 14 28C14 20.268 7.732 14 0 14C7.732 14 14 7.732 14 0Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- Saiph (lower left): unlit faint gray dot with thin ring -->
+<div class="absolute top-[156px] left-[52px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+<div class="w-3.5 h-3.5 rounded-full border border-[#7C828D]/50 flex items-center justify-center">
+<div class="w-1 h-1 rounded-full bg-[#7C828D]/70"></div>
+</div>
+</div>
+<!-- Rigel (lower right): unlit dim dot with thin ring, subtle cool faint tint -->
+<div class="absolute top-[150px] left-[142px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10">
+<div class="w-3.5 h-3.5 rounded-full border border-[#7C828D]/50 flex items-center justify-center">
+<div class="w-1 h-1 rounded-full bg-[#7C828D]/70"></div>
+</div>
+</div></div></div></div>
 <!-- Hairline Thin Divider Line -->
 <div class="w-full h-[1px] bg-[#7C828D]/25"></div>
 <!-- Bottom 1/3: Session Metrics & Identity -->
-<div class="w-full h-[147px] flex flex-col items-center justify-between py-4 px-3 text-center bg-[#0e141c]/40 backdrop-blur-sm"><div class="flex flex-col items-center justify-center text-center w-full"><h1 class="text-[#EEF0F3] text-[24px] leading-tight font-bold tracking-tight">백조자리 · 별 3개</h1><p class="text-[#949AA6] text-[14px] leading-tight font-normal mt-1.5 tracking-normal">10월 29일 · <span class="text-[#FFEF4D] font-bold">2/3세트</span></p></div><div class="w-full h-[1px] bg-[#7C828D]/25 my-1"></div><footer class="flex flex-col items-center text-center"><span class="text-[12px] tracking-normal text-[#949AA6] font-medium leading-tight">별모도로 · 별자리를 완성하는 집중 타이머</span><span class="text-[11px] text-[#6B7280] tracking-normal mt-1 leading-tight font-mono">byeolmodoro.streamlit.app</span></footer></div>
+<div class="w-full h-[147px] flex flex-col items-center justify-between py-4 px-3 text-center bg-[#0e141c]/40 backdrop-blur-sm"><div class="flex flex-col items-center justify-center text-center w-full"><h1 class="text-[#EEF0F3] text-[24px] leading-tight font-bold tracking-tight">오리온자리 · 별 4개</h1><p class="text-[#949AA6] text-[14px] leading-tight font-normal mt-1.5 tracking-normal">10월 29일 · <span class="text-[#FFEF4D] font-bold">2/3세트</span></p></div><div class="w-full h-[1px] bg-[#7C828D]/25 my-1"></div><footer class="flex flex-col items-center text-center"><span class="text-[12px] tracking-normal text-[#949AA6] font-medium leading-tight">별모도로 · 별자리를 완성하는 집중 타이머</span><span class="text-[11px] text-[#6B7280] tracking-normal mt-1 leading-tight font-mono">byeolmodoro.streamlit.app</span></footer></div>
 </article>
 <!-- Subtitle Indicator Below Card -->
 <p class="mt-4 text-[12px] font-label-sm text-[#949AA6] font-medium tracking-normal">

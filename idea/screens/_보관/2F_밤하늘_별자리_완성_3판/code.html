@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="ko" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>별모도로 - 밤하늘 (7세트)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,600;0,700;1,700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #000000;
+      color: #EEF0F3;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .font-num {
+      font-family: 'Archivo Narrow', sans-serif;
+      font-feature-settings: "tnum";
+    }
+    .crosshair-corner {
+      position: relative;
+    }
+    .crosshair-corner::before,
+    .crosshair-corner::after {
+      content: '';
+      position: absolute;
+      pointer-events: none;
+    }
+    /* Corner cross marks */
+    .cross-top-left {
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-top-right {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-left {
+      position: absolute;
+      bottom: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-right {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-mark {
+      stroke: #FFEF4D;
+      stroke-width: 1.5;
+    }
+    .glow-yellow {
+      box-shadow: 0 0 16px rgba(255, 239, 77, 0.5);
+    }
+    .glow-text {
+      text-shadow: 0 0 10px rgba(255, 239, 77, 0.4);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-between w-full max-w-[390px] mx-auto relative selection:bg-[#FFEF4D] selection:text-black">
+<!-- Desktop App Container (1440 max / 720 center content) -->
+<div class="w-full h-full flex flex-col justify-between items-center px-4 pt-6 pb-6 relative">
+<!-- Top Navigation Tabs (Centered within layout) -->
+<header class="w-full max-w-[358px] pt-2 pb-4 flex justify-center items-center">
+<nav class="flex items-center space-x-12 text-lg font-medium tracking-normal">
+<!-- 타이머 탭 (비활성) -->
+<a class="text-[#7C828D] hover:text-[#949AA6] transition-colors pb-2 cursor-pointer tracking-normal" href="#">
+          타이머
+        </a>
+<!-- 밤하늘 탭 (활성: 노란 글자 + 노란 밑줄 + 빛 번짐) -->
+<a class="text-[#FFEF4D] font-bold pb-2 relative flex flex-col items-center glow-text cursor-default tracking-normal" href="#">
+<span class="tracking-normal">밤하늘</span>
+<span class="absolute bottom-0 w-full h-[2.5px] bg-[#FFEF4D] glow-yellow rounded-full"></span>
+</a>
+</nav>
+</header>
+<!-- Main Content Area: Width 720px, Vertical Stack -->
+<main class="w-full max-w-[358px] flex flex-col items-stretch space-y-4 my-auto pb-2">
+<!-- 1. 밤하늘 판 (360px 높이, 모서리 살짝 둥글게, 그라데이션) -->
+<section aria-label="별이 뜨는 밤하늘" class="w-full h-[320px] rounded-xl relative overflow-hidden flex items-center justify-center border" style="background: linear-gradient(180deg, #0F1216 0%, #171C23 60%, #23272F 100%); border-color: rgba(124, 130, 141, 0.45); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);"><!-- Constellation Connecting Lines SVG -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" style="filter: drop-shadow(0 0 3px rgba(255, 239, 77, 0.5));" viewbox="0 0 358 320">
+<!-- Vertical spine: Deneb (50%, 18%) -> Sadr (50%, 44%) -> Albireo (50%, 82%) -->
+<line stroke="#FFEF4D" stroke-opacity="0.75" stroke-width="1.5" x1="50%" x2="50%" y1="18%" y2="44%"></line>
+<line stroke="#FFEF4D" stroke-opacity="0.75" stroke-width="1.5" x1="50%" x2="50%" y1="44%" y2="82%"></line>
+<!-- Horizontal wings: Left wing (24%, 40%) -> Sadr (50%, 44%) -> Right wing (76%, 40%) -->
+<line stroke="#FFEF4D" stroke-opacity="0.75" stroke-width="1.5" x1="24%" x2="50%" y1="40%" y2="44%"></line>
+<line stroke="#FFEF4D" stroke-opacity="0.75" stroke-width="1.5" x1="50%" x2="76%" y1="44%" y2="40%"></line>
+</svg>
+<!-- 1. Top star (Deneb): fully lit, blue-white (#EDF6FF) glowing sparkle -->
+<div class="absolute pointer-events-none" style="left: 50%; top: 18%; transform: translate(-50%, -50%);">
+<svg class="w-5 h-5" fill="none" style="filter: drop-shadow(0 0 10px rgba(237, 246, 255, 0.95)) drop-shadow(0 0 18px rgba(186, 219, 255, 0.8));" viewbox="0 0 24 24">
+<path d="M12 0L14.2 9.2L24 12L14.2 14.8L12 24L9.8 14.8L0 12L9.8 9.2L12 0Z" fill="#EDF6FF"></path>
+</svg>
+</div>
+<!-- 2. Left wing star: fully lit 4-point sparkle (#FFF9A6 / #FFEF4D) -->
+<div class="absolute pointer-events-none" style="left: 24%; top: 40%; transform: translate(-50%, -50%);">
+<svg class="w-5 h-5" fill="none" style="filter: drop-shadow(0 0 8px rgba(255, 239, 77, 0.95)) drop-shadow(0 0 16px rgba(255, 249, 166, 0.8));" viewbox="0 0 24 24">
+<path d="M12 0L14.2 9.2L24 12L14.2 14.8L12 24L9.8 14.8L0 12L9.8 9.2L12 0Z" fill="#FFF9A6"></path>
+</svg>
+</div>
+<!-- 3. Center star (Sadr): fully lit, bright 4-point sparkle (#FFEF4D) -->
+<div class="absolute pointer-events-none" style="left: 50%; top: 44%; transform: translate(-50%, -50%);">
+<svg class="w-5 h-5" fill="none" style="filter: drop-shadow(0 0 8px rgba(255, 239, 77, 0.95)) drop-shadow(0 0 16px rgba(255, 249, 166, 0.8));" viewbox="0 0 24 24">
+<path d="M12 0L14.2 9.2L24 12L14.2 14.8L12 24L9.8 14.8L0 12L9.8 9.2L12 0Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- 4. Right wing star: fully lit, bright 4-point sparkle (#FFF9A6 / #FFEF4D) -->
+<div class="absolute pointer-events-none" style="left: 76%; top: 40%; transform: translate(-50%, -50%);">
+<svg class="w-5 h-5" fill="none" style="filter: drop-shadow(0 0 8px rgba(255, 239, 77, 0.95)) drop-shadow(0 0 16px rgba(255, 249, 166, 0.8));" viewbox="0 0 24 24">
+<path d="M12 0L14.2 9.2L24 12L14.2 14.8L12 24L9.8 14.8L0 12L9.8 9.2L12 0Z" fill="#FFF9A6"></path>
+</svg>
+</div>
+<!-- 5. Bottom star (Albireo): fully lit, bright 4-point sparkle (#FFEF4D) -->
+<div class="absolute pointer-events-none" style="left: 50%; top: 82%; transform: translate(-50%, -50%);">
+<svg class="w-5 h-5" fill="none" style="filter: drop-shadow(0 0 8px rgba(255, 239, 77, 0.95)) drop-shadow(0 0 16px rgba(255, 249, 166, 0.8));" viewbox="0 0 24 24">
+<path d="M12 0L14.2 9.2L24 12L14.2 14.8L12 24L9.8 14.8L0 12L9.8 9.2L12 0Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- Bonus Star: Soft white dot floating near upper right of the cross -->
+<div class="absolute pointer-events-none flex items-center justify-center" style="left: 68%; top: 22%; transform: translate(-50%, -50%);">
+<div class="w-2 h-2 rounded-full bg-[#EDF6FF] opacity-80" style="box-shadow: 0 0 6px rgba(237, 246, 255, 0.85);"></div>
+</div></section>
+<!-- 2. 한 줄 통계 텍스트 -->
+<div class="text-center pt-1 pb-1"><p class="text-lg font-bold text-[#EEF0F3] tracking-normal mb-1">백조자리 <span class="text-[#FFEF4D]">완성</span> · 덤 별 1개 · 오늘</p>
+<p class="text-sm text-[#949AA6] font-normal tracking-normal">누적 <span class="text-[#EEF0F3] font-medium">9</span>세트 · 총 <span class="text-[#EEF0F3] font-medium">3</span>시간 <span class="text-[#EEF0F3] font-medium">45</span>분 집중</p></div>
+<!-- 3. 버튼 영역 -->
+<div class="flex flex-col space-y-4 pt-2">
+<!-- 주 단추: 꽉 찬 노란 직사각형, 각진 모서리, 검고 굵은 글자, 네 모서리 바깥 "+" 십자 표시 -->
+<div class="relative w-full">
+<!-- 4 Corner Crosshairs -->
+<svg class="cross-top-left" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<svg class="cross-top-right" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<svg class="cross-bottom-left" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<svg class="cross-bottom-right" fill="none" viewbox="0 0 12 12">
+<line class="cross-mark" x1="6" x2="6" y1="0" y2="12"></line>
+<line class="cross-mark" x1="0" x2="12" y1="6" y2="6"></line>
+</svg>
+<button class="w-full h-[52px] bg-[#FFEF4D] hover:bg-[#fff26a] active:bg-[#ebd936] text-[#000000] font-bold text-lg tracking-normal rounded-none transition-colors flex items-center justify-center cursor-pointer shadow-lg" type="button">
+            다음 세트 시작
+          </button>
+</div>
+<!-- 보조 단추: 바탕 없이 #7C828D 얇은 테두리, 누를 수 없는 비활성 상태 (opacity & disabled) -->
+<button class="w-full h-[52px] bg-transparent border border-[#7C828D] text-[#EEF0F3] hover:bg-[#7C828D]/10 active:bg-[#7C828D]/20 font-medium text-lg tracking-normal rounded-none flex items-center justify-center cursor-pointer transition-colors" type="button">
+          카드 만들기
+        </button>
+<!-- 작고 덜 눈에 띄는 글 단추: 시연 모드 -->
+</div><!-- 지난 별자리 History Section -->
+<section aria-label="지난 별자리 내역" class="w-full pt-4">
+<h2 class="text-sm font-bold text-[#949AA6] mb-2.5 tracking-normal">지난 별자리</h2>
+<div class="flex flex-col space-y-2">
+<!-- Row 1: 카시오페이아자리 (완성) -->
+<div class="w-full rounded-xl px-3.5 py-2.5 flex items-center justify-between border" style="background: linear-gradient(180deg, #0F1216 0%, #171C23 60%, #23272F 100%); border-color: rgba(124, 130, 141, 0.3);">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-lg bg-[#000000]/60 border border-[#7C828D]/30 flex items-center justify-center p-1 flex-shrink-0">
+<svg class="w-5 h-5 overflow-visible" fill="none" viewbox="0 0 24 24">
+<polyline points="3,8 7,16 12,10 17,16 21,9" stroke="#FFEF4D" stroke-opacity="0.7" stroke-width="1.2"></polyline>
+<circle cx="3" cy="8" fill="#FFF9A6" r="1.5"></circle>
+<circle cx="7" cy="16" fill="#FFF9A6" r="1.5"></circle>
+<circle cx="12" cy="10" fill="#FFF9A6" r="1.5"></circle>
+<circle cx="17" cy="16" fill="#FFF9A6" r="1.5"></circle>
+<circle cx="21" cy="9" fill="#FFF9A6" r="1.5"></circle>
+</svg>
+</div>
+<div class="flex flex-col text-left">
+<span class="text-sm font-medium text-[#EEF0F3] leading-tight">카시오페이아자리</span>
+<span class="text-[12px] text-[#949AA6] leading-normal">10월 28일</span>
+</div>
+</div>
+<span class="text-[13px] font-bold text-[#FFEF4D]">완성</span>
+</div>
+<!-- Row 2: 오리온자리 (2/3세트) -->
+<div class="w-full rounded-xl px-3.5 py-2.5 flex items-center justify-between border" style="background: linear-gradient(180deg, #0F1216 0%, #171C23 60%, #23272F 100%); border-color: rgba(124, 130, 141, 0.3);">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-lg bg-[#000000]/60 border border-[#7C828D]/30 flex items-center justify-center p-1 flex-shrink-0">
+<svg class="w-5 h-5 overflow-visible" fill="none" viewbox="0 0 24 24">
+<circle cx="5" cy="6" fill="#FFF9A6" opacity="0.9" r="1.3"></circle>
+<circle cx="19" cy="6" fill="#FFF9A6" opacity="0.9" r="1.3"></circle>
+<circle cx="9" cy="12" fill="#FFEF4D" opacity="0.8" r="1.1"></circle>
+<circle cx="12" cy="12" fill="#FFEF4D" opacity="0.8" r="1.1"></circle>
+<circle cx="15" cy="12" fill="#7C828D" opacity="0.4" r="1.1"></circle>
+<circle cx="6" cy="18" fill="#7C828D" opacity="0.4" r="1.3"></circle>
+<circle cx="18" cy="18" fill="#7C828D" opacity="0.4" r="1.3"></circle>
+</svg>
+</div>
+<div class="flex flex-col text-left">
+<span class="text-sm font-medium text-[#EEF0F3] leading-tight">오리온자리</span>
+<span class="text-[12px] text-[#949AA6] leading-normal">10월 27일</span>
+</div>
+</div>
+<span class="text-[13px] font-medium text-[#949AA6]">2/3세트</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Empty Footer Spacer for Centering Balance -->
+<!-- Floating Chatbot Button (Bottom Right) -->
+</div>
+</body></html>
