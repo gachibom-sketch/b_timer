@@ -3,7 +3,7 @@
 <html lang="ko" style=""><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
-<title>별도로 - 타이머</title>
+<title>별모도로 - 목표 설정</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <!-- Tailwind Configuration -->
@@ -94,89 +94,63 @@
 <div class="flex flex-col justify-between items-center px-4 py-0" data-purpose="mobile-screen-wrapper" id="app-container"><!-- Top Header & Card Selection Section -->
 <div class="w-full max-w-[358px] flex flex-col pt-10">
 <!-- Header Section -->
-<div class="flex flex-col mb-7">
-<h1 class="text-[24px] font-bold text-[#EEF0F3] leading-snug tracking-normal">목표 별자리를 골라 주세요</h1>
-<p class="text-[14px] text-[#949AA6] mt-2 tracking-normal">세트를 마칠 때마다 별이 하나씩 켜져요</p>
-</div>
+<div class="flex flex-col mb-7"><h1 class="text-[24px] font-bold text-[#EEF0F3] leading-snug tracking-normal">목표를 정해 주세요</h1>
+<p class="text-[14px] text-[#949AA6] mt-2 tracking-normal">세트를 마칠 때마다 별자리가 조금씩 차올라요</p></div>
 <!-- Constellation Selection Cards List -->
-<div class="flex flex-col gap-3 w-full">
-<!-- Card 1: 삼각형자리 (SELECTED) -->
-<div class="w-full rounded-2xl p-4 flex items-center justify-between cursor-pointer border-2 border-[#FFEF4D] shadow-[0_0_16px_rgba(255,239,77,0.15)]" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);">
-<div class="flex items-center gap-3.5">
-<!-- Constellation Preview Box (72x72) -->
-<div class="w-[72px] h-[72px] rounded-xl bg-[#090B0E] flex items-center justify-center flex-shrink-0 border border-[#2B303A]">
-<svg fill="none" height="56" viewbox="0 0 56 56" width="56" xmlns="http://www.w3.org/2000/svg">
-<!-- Triangle constellation lines -->
-<line stroke="#FFEF4D" stroke-opacity="0.9" stroke-width="1.5" x1="28" x2="13" y1="12" y2="42"></line>
-<line stroke="#FFEF4D" stroke-opacity="0.9" stroke-width="1.5" x1="28" x2="43" y1="12" y2="42"></line>
-<line stroke="#FFEF4D" stroke-opacity="0.9" stroke-width="1.5" x1="13" x2="43" y1="42" y2="42"></line>
-<!-- Stars (glowing dots) -->
-<circle cx="28" cy="12" fill="#FFEF4D" filter="drop-shadow(0 0 4px #FFEF4D)" r="3.5"></circle>
-<circle cx="13" cy="42" fill="#FFEF4D" filter="drop-shadow(0 0 4px #FFEF4D)" r="3.5"></circle>
-<circle cx="43" cy="42" fill="#FFEF4D" filter="drop-shadow(0 0 4px #FFEF4D)" r="3.5"></circle>
+<div class="flex flex-col gap-5 w-full">
+<!-- Section A: 기간 selection -->
+<div class="flex flex-col">
+<span class="text-[13px] font-medium text-[#949AA6] mb-2">기간</span>
+<div class="grid grid-cols-2 gap-2.5 w-full">
+<button class="w-full py-3 bg-[#FFEF4D] text-[#000000] font-bold text-[15px] rounded-xl text-center focus:outline-none transition-colors cursor-pointer" type="button">하루</button>
+<button class="w-full py-3 border border-[#7C828D]/45 text-[#EEF0F3] font-medium text-[15px] rounded-xl text-center focus:outline-none transition-colors cursor-pointer" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);" type="button">한 주</button>
+</div>
+</div>
+<!-- Section B: 세트 수 selection -->
+<div class="flex flex-col">
+<span class="text-[13px] font-medium text-[#949AA6] mb-2">세트 수</span>
+<div class="grid grid-cols-4 gap-2 w-full">
+<button class="w-full py-3 border border-[#7C828D]/45 text-[#EEF0F3] font-medium text-[15px] rounded-xl text-center focus:outline-none transition-colors cursor-pointer" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);" type="button">2세트</button>
+<button class="w-full py-3 border-2 border-[#FFEF4D] text-[#FFEF4D] font-bold text-[15px] rounded-xl text-center shadow-[0_0_16px_rgba(255,239,77,0.15)] focus:outline-none transition-colors cursor-pointer" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);" type="button">3세트</button>
+<button class="w-full py-3 border border-[#7C828D]/45 text-[#EEF0F3] font-medium text-[15px] rounded-xl text-center focus:outline-none transition-colors cursor-pointer" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);" type="button">4세트</button>
+<button class="w-full py-3 border border-[#7C828D]/45 text-[#EEF0F3] font-medium text-[15px] rounded-xl text-center focus:outline-none transition-colors cursor-pointer" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);" type="button">5세트</button>
+</div>
+<p class="text-[13px] text-[#949AA6] mt-2">하루 3세트 · 약 1시간 30분</p>
+</div>
+<!-- Section C: 첫 별자리 preview card -->
+<div class="w-full rounded-2xl p-4 border border-[#7C828D]/45 flex flex-col" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);">
+<span class="text-[12px] font-medium text-[#949AA6] mb-3 leading-none">첫 별자리</span>
+<div class="flex items-center gap-4">
+<!-- Orion Constellation Drawing -->
+<div class="w-[76px] h-[76px] rounded-xl bg-[#090B0E] flex items-center justify-center flex-shrink-0 border border-[#2B303A]">
+<svg fill="none" height="64" viewbox="0 0 64 64" width="64" xmlns="http://www.w3.org/2000/svg">
+<!-- Hourglass & Belt Connecting Lines -->
+<line stroke="rgba(124,130,141,0.35)" stroke-width="1.2" x1="18" x2="46" y1="14" y2="18"></line>
+<line stroke="rgba(124,130,141,0.35)" stroke-width="1.2" x1="18" x2="28" y1="14" y2="32"></line>
+<line stroke="rgba(124,130,141,0.35)" stroke-width="1.2" x1="46" x2="36" y1="18" y2="32"></line>
+<line stroke="rgba(124,130,141,0.5)" stroke-width="1.2" x1="28" x2="32" y1="32" y2="32"></line>
+<line stroke="rgba(124,130,141,0.5)" stroke-width="1.2" x1="32" x2="36" y1="32" y2="32"></line>
+<line stroke="rgba(124,130,141,0.35)" stroke-width="1.2" x1="28" x2="20" y1="32" y2="50"></line>
+<line stroke="rgba(124,130,141,0.35)" stroke-width="1.2" x1="36" x2="44" y1="32" y2="48"></line>
+<line stroke="rgba(124,130,141,0.35)" stroke-width="1.2" x1="20" x2="44" y1="50" y2="48"></line>
+<!-- Betelgeuse (Red tint) -->
+<circle cx="18" cy="14" fill="#FFA099" filter="drop-shadow(0 0 4px rgba(255,122,122,0.8))" r="3.5"></circle>
+<!-- Bellatrix -->
+<circle cx="46" cy="18" fill="#EEF0F3" r="2.5"></circle>
+<!-- Belt Stars (Alnitak, Alnilam, Mintaka) -->
+<circle cx="28" cy="32" fill="#EEF0F3" r="2"></circle>
+<circle cx="32" cy="32" fill="#EEF0F3" r="2"></circle>
+<circle cx="36" cy="32" fill="#EEF0F3" r="2"></circle>
+<!-- Saiph -->
+<circle cx="20" cy="50" fill="#D1D5DB" r="2.5"></circle>
+<!-- Rigel (Blue tint) -->
+<circle cx="44" cy="48" fill="#9BC2FF" filter="drop-shadow(0 0 4px rgba(122,184,255,0.8))" r="3.5"></circle>
 </svg>
 </div>
-<!-- Card Text Details -->
-<div class="flex flex-col gap-1.5">
-<div class="flex items-center gap-2">
-<span class="text-[17px] font-bold text-[#EEF0F3] leading-none">삼각형자리</span>
-<span class="text-[11px] font-medium text-[#FFEF4D] border border-[#FFEF4D] px-1.5 py-0.5 rounded leading-none">처음이라면 추천</span>
-</div>
-<p class="text-[14px] text-[#949AA6] leading-none">오늘 3세트 · 1시간 30분</p>
-</div>
-</div>
-<!-- Selected Indicator Check Circle -->
-<div class="w-6 h-6 rounded-full bg-[#FFEF4D] flex items-center justify-center flex-shrink-0 ml-2 shadow-[0_0_8px_rgba(255,239,77,0.5)]">
-<svg fill="none" height="10" viewbox="0 0 14 10" width="14" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.5 5.2L4.8 8.5L12.5 1.5" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
-</svg>
-</div>
-</div>
-<!-- Card 2: 카시오페이아자리 (UNSELECTED) -->
-<div class="w-full rounded-2xl p-4 flex items-center justify-between cursor-pointer border border-[#7C828D]/45 hover:border-[#7C828D] transition-colors" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);">
-<div class="flex items-center gap-3.5">
-<!-- Constellation Preview Box (72x72) -->
-<div class="w-[72px] h-[72px] rounded-xl bg-[#090B0E] flex items-center justify-center flex-shrink-0 border border-[#2B303A]">
-<svg fill="none" height="56" viewbox="0 0 56 56" width="56" xmlns="http://www.w3.org/2000/svg">
-<!-- W constellation lines -->
-<polyline fill="none" points="10,18 20,38 29,22 38,40 48,22" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"></polyline>
-<!-- Stars -->
-<circle cx="10" cy="18" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="20" cy="38" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="29" cy="22" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="38" cy="40" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="48" cy="22" fill="#D1D5DB" r="2.5"></circle>
-</svg>
-</div>
-<!-- Card Text Details -->
-<div class="flex flex-col gap-1.5">
-<span class="text-[17px] font-bold text-[#EEF0F3] leading-none">카시오페이아자리</span>
-<p class="text-[14px] text-[#949AA6] leading-none">오늘 5세트 · 2시간 30분</p>
-</div>
-</div>
-</div>
-<!-- Card 3: 북두칠성 (UNSELECTED) -->
-<div class="w-full rounded-2xl p-4 flex items-center justify-between cursor-pointer border border-[#7C828D]/45 hover:border-[#7C828D] transition-colors" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);">
-<div class="flex items-center gap-3.5">
-<!-- Constellation Preview Box (72x72) -->
-<div class="w-[72px] h-[72px] rounded-xl bg-[#090B0E] flex items-center justify-center flex-shrink-0 border border-[#2B303A]">
-<svg fill="none" height="56" viewbox="0 0 56 56" width="56" xmlns="http://www.w3.org/2000/svg">
-<!-- Big Dipper handle + bowl lines -->
-<polyline fill="none" points="8,16 18,22 26,28 35,31 46,29 48,43 36,44 35,31" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"></polyline>
-<!-- Stars -->
-<circle cx="8" cy="16" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="18" cy="22" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="26" cy="28" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="35" cy="31" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="46" cy="29" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="48" cy="43" fill="#D1D5DB" r="2.5"></circle>
-<circle cx="36" cy="44" fill="#D1D5DB" r="2.5"></circle>
-</svg>
-</div>
-<!-- Card Text Details -->
-<div class="flex flex-col gap-1.5">
-<span class="text-[17px] font-bold text-[#EEF0F3] leading-none">북두칠성</span>
-<p class="text-[14px] text-[#949AA6] leading-none">이번 주 7세트 · 하루 1세트씩</p>
+<!-- Constellation Details -->
+<div class="flex flex-col">
+<span class="text-[18px] font-bold text-[#EEF0F3] leading-snug">오리온자리</span>
+<p class="text-[13px] text-[#949AA6] mt-1 leading-snug">세트를 마칠 때마다 앞 별부터 차올라요</p>
 </div>
 </div>
 </div>
@@ -191,9 +165,7 @@
 <span aria-hidden="true" class="crosshair-corner crosshair-bl">+</span>
 <span aria-hidden="true" class="crosshair-corner crosshair-br">+</span>
 <!-- Main CTA Button -->
-<button class="w-full h-full bg-[#FFEF4D] text-[#000000] font-bold text-[16px] tracking-normal flex items-center justify-center rounded-none active:bg-[#e6d843] transition-colors focus:outline-none cursor-pointer" type="button">
-      이 별자리로 정하기
-    </button>
+<button class="w-full h-full bg-[#FFEF4D] text-[#000000] font-bold text-[16px] tracking-normal flex items-center justify-center rounded-none active:bg-[#e6d843] transition-colors focus:outline-none cursor-pointer" type="button">이 목표로 시작하기</button>
 </div>
 </div></div>
 <!-- END: MainContainer -->
