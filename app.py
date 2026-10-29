@@ -14,7 +14,7 @@ from card_parts import card_png
 from sky_parts import sky_view
 from timer_parts import set_engine, timer_dial
 
-st.set_page_config(page_title="별도로", page_icon="🌟")
+st.set_page_config(page_title="별모도로", page_icon="🌟")
 
 # 누적 세트 수는 Supabase 의 progress 표에 테스터마다 한 줄씩 저장함
 load_dotenv()
@@ -392,7 +392,7 @@ def waiting():  # 1-A 대기(0세트) · 1-E 대기(1세트 이상)
 
 
 def timer_screen():  # 화면1 — 대기 · 집중(1-B) · 휴식(1-C) · 그만하기 확인 창(1-D)이 한 화면 안에서 바뀜
-    st.title("별도로")
+    st.title("별모도로")
 
     phase = set_phase()
     if phase is None:
@@ -427,7 +427,7 @@ def demo_box(count):  # D-1 시연 모드 칸 — 누적 세트 수 바꾸기 (�
 
 def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 진행 중(2-D) · 시연 모드 칸(D-1)
     app_frame()
-    st.title("별도로")
+    st.title("별모도로")
 
     count = current_count()
     demo = st.session_state.get("demo", False)
@@ -468,7 +468,7 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
         st.switch_page(sky_page)
 
     app_frame()
-    st.title("별도로")
+    st.title("별모도로")
     if st.button("←"):
         st.switch_page(sky_page)
 
@@ -479,7 +479,7 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
     st.download_button(
         "이미지 저장",
         data=card,
-        file_name=f"별도로_{count}세트.png",
+        file_name=f"별모도로_{count}세트.png",
         mime="image/png",
         type="primary",
         width="stretch",

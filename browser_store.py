@@ -1,6 +1,7 @@
 import streamlit as st
 
-# 브라우저 저장 칸(localStorage)을 읽고 쓰는 보이지 않는 부품 — 별도로 기록의 브라우저 사본
+# 브라우저 저장 칸(localStorage)을 읽고 쓰는 보이지 않는 부품 — 별모도로 기록의 브라우저 사본
+# 저장 이름 "byeoldoro." 는 서비스 이름을 바꾸기 전(별도로) 그대로 둠 — 바꾸면 이미 쌓인 기록을 찾지 못함
 # 처음에는 읽어서 파이썬에 알려 주고, 그 뒤로는 파이썬이 정한 값을 씀
 STORE_JS = """
 export default function (component) {

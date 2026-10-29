@@ -65,7 +65,7 @@ def card_png(layers, counts, title, subtitle, date, demo=False):
     middle = WIDTH / 2
     pen.text((middle, 1523), title, font=font(104, "Bold"), fill=TEXT_COLORS["title"], anchor="mm")
     pen.text((middle, 1641), subtitle, font=font(52, "Regular"), fill=TEXT_COLORS["subtitle"], anchor="mm")
-    pen.text((middle, 1772), "별도로", font=font(48, "Regular"), fill=TEXT_COLORS["name"], anchor="mm")
+    pen.text((middle, 1772), "별모도로", font=font(48, "Regular"), fill=TEXT_COLORS["name"], anchor="mm")
     pen.text((middle, 1838), date, font=font(40, "Regular"), fill=TEXT_COLORS["date"], anchor="mm")  # 누적 수가 어느 날까지인지
     if demo:  # 시연으로 만든 카드가 실제 기록 카드로 오해받지 않게
         card.paste(white, mask=draw_watermark())
