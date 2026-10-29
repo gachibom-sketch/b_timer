@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html lang="ko" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
+<title>별모도로 - 타이머</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandYellow: '#FFEF4D',
+            brandDark: '#191F28',
+            brandSlate: '#23272F',
+            brandMuted: '#8B95A1',
+            brandText: '#191F28',
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+            mono: ['"Archivo Narrow"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- CSS Styles -->
+<style data-purpose="custom-layout">
+    /* Prevent default elastic scrolling & assure 390x844 mobile viewport */
+    html, body {
+      background-color: #FFFFFF;
+      color: #191F28;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    #app-container {
+      width: 390px;
+      height: 844px;
+      max-height: 844px;
+      position: relative;
+      background-color: #FFFFFF;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+<!-- BEGIN: MainContainer -->
+<div class="flex flex-col justify-between items-center px-0 py-0 relative w-[390px] h-[844px] bg-white select-none" data-purpose="mobile-screen-wrapper" id="app-container">
+<!-- BEGIN: TopSection -->
+<div class="w-full flex flex-col items-center" data-purpose="top-navigation-and-status">
+<!-- Toss Mini-App Navigation Bar (Height 54px, #FFFFFF) -->
+<header class="w-full h-[54px] px-4 flex items-center justify-between border-b border-[#F2F4F6] bg-white z-20">
+<div class="flex items-center gap-2">
+<button class="text-[#191F28] flex items-center justify-center p-1 -ml-1 text-[22px] leading-none font-normal active:opacity-60" type="button">
+<svg fill="none" height="20" stroke="#191F28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" viewbox="0 0 24 24" width="20"><polyline points="15 18 9 12 15 6"></polyline></svg>
+</button>
+<div class="w-6 h-6 rounded-[7px] bg-gradient-to-br from-[#0E1430] to-[#1C2650] flex items-center justify-center shadow-xs">
+<span class="text-[#FFEF4D] text-[11px] leading-none select-none">★</span>
+</div>
+<span class="text-[17px] font-semibold text-[#191F28] tracking-tight ml-0.5">별모도로</span>
+</div>
+<div class="flex items-center gap-3 text-[#191F28]">
+<button class="p-1 text-[20px] leading-none text-[#191F28] active:opacity-60" type="button">
+<svg fill="currentColor" height="20" viewbox="0 0 24 24" width="20"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg>
+</button>
+<button class="p-1 text-[20px] leading-none text-[#191F28] active:opacity-60" type="button">
+<svg fill="none" height="20" stroke="#191F28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="20"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+</header>
+<!-- Status Pill: '집중 중' (#FFF0A0 background, #7A5C00 text) -->
+<div class="mt-5 flex items-center justify-center">
+<div class="px-3.5 py-1 rounded-full bg-[#FFF0A0] text-[#7A5C00] text-[13px] font-semibold tracking-tight shadow-xs flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#7A5C00]"></span>
+<span>집중 중</span>
+</div>
+</div>
+</div>
+<!-- END: TopSection -->
+<!-- BEGIN: TimerDialSection -->
+<div class="relative flex items-center justify-center w-[250px] h-[250px] my-auto" data-purpose="timer-visual-clock">
+<!-- Clock Face SVG (Clean light mode, 240px diameter) -->
+<svg class="relative z-10 w-[240px] h-[240px]" data-purpose="clock-dial-svg" fill="none" viewbox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Diagonal stripe pattern for 5-min rest sector (0° to 60°) -->
+<pattern height="8" id="diagonalHatchLight" patterntransform="rotate(45 0 0)" patternunits="userSpaceOnUse" width="8">
+<line stroke="#FFEF4D" stroke-width="2" x1="0" x2="0" y1="0" y2="8"></line>
+</pattern>
+</defs>
+<!-- Outer subtle rim stroke -->
+<circle cx="120" cy="120" fill="#FFFFFF" r="116" stroke="#D1D6DB" stroke-width="1.5"></circle>
+<!-- 60° to 210° Elapsed portion of focus slice: light gray #F2F4F6 (half of 25m passed) -->
+<path d="M 120 120 L 220.45 62 A 116 116 0 0 1 62 220.45 Z" fill="#F2F4F6"></path>
+<!-- 210° to 360° (0°) Remaining portion of focus slice: solid #FFE14D (12:30 left) -->
+<path d="M 120 120 L 62 220.45 A 116 116 0 0 1 120 4 Z" fill="#FFE14D"></path>
+<!-- 0° to 60° (12 to 2 o'clock) Rest Sector: dark navy #1C2650 base + yellow diagonal hatch -->
+<path d="M 120 120 L 120 4 A 116 116 0 0 1 220.45 62 Z" fill="#1C2650"></path>
+<path d="M 120 120 L 120 4 A 116 116 0 0 1 220.45 62 Z" fill="url(#diagonalHatchLight)" fill-opacity="0.65"></path>
+<!-- Perimeter tick marks in #191F28 -->
+<!-- 12 o'clock (0°) -->
+<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="120" x2="120" y1="4" y2="18"></line>
+<!-- 1 o'clock (30°) -->
+<line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="178" x2="171" y1="19.5" y2="31.6"></line>
+<!-- 2 o'clock (60°) -->
+<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="220.4" x2="208.3" y1="62" y2="69"></line>
+<!-- 3 o'clock (90°) -->
+<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="236" x2="222" y1="120" y2="120"></line>
+<!-- 4 o'clock (120°) -->
+<line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="220.4" x2="208.3" y1="178" y2="171"></line>
+<!-- 5 o'clock (150°) -->
+<line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="178" x2="171" y1="220.5" y2="208.4"></line>
+<!-- 6 o'clock (180°) -->
+<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="120" x2="120" y1="236" y2="222"></line>
+<!-- 7 o'clock (210°) Boundary of remaining/elapsed -->
+<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="62" x2="69" y1="220.5" y2="208.4"></line>
+<!-- 8 o'clock (240°) -->
+<line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="19.5" x2="31.7" y1="178" y2="171"></line>
+<!-- 9 o'clock (270°) -->
+<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="4" x2="18" y1="120" y2="120"></line>
+<!-- 10 o'clock (300°) -->
+<line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="19.5" x2="31.7" y1="62" y2="69"></line>
+<!-- 11 o'clock (330°) -->
+<line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="62" x2="69" y1="19.5" y2="31.6"></line>
+<!-- Sector Dividers -->
+<line stroke="#FFFFFF" stroke-width="2" x1="120" x2="120" y1="120" y2="4"></line>
+<line stroke="#FFFFFF" stroke-width="2" x1="120" x2="220.45" y1="120" y2="62"></line>
+<line stroke="#FFFFFF" stroke-width="2" x1="120" x2="62" y1="120" y2="220.45"></line>
+<!-- Center hub & dot in #191F28 -->
+<circle cx="120" cy="120" fill="#FFFFFF" r="10" stroke="#191F28" stroke-width="3"></circle>
+<circle cx="120" cy="120" fill="#191F28" r="3.5"></circle>
+</svg>
+</div>
+<!-- END: TimerDialSection -->
+<!-- BEGIN: TimerValueAndStatsSection -->
+<div class="w-full flex flex-col items-center justify-center mt-2 mb-4" data-purpose="time-display-and-sets">
+<div class="font-mono text-[64px] font-bold tracking-tight text-[#191F28] leading-none select-none tabular-nums" data-purpose="digital-countdown-display">
+    12:30
+  </div>
+</div>
+<!-- END: TimerValueAndStatsSection -->
+<!-- BEGIN: BottomControlsSection -->
+<div class="w-full flex flex-col items-center px-4 pb-3 z-10" data-purpose="bottom-action-container">
+<!-- Toss '그만하기' button: 56px height, rounded-2xl, #F2F4F6 bg, #333D4B text, semibold 17px -->
+<button class="w-full h-[56px] rounded-2xl bg-[#F2F4F6] text-[#333D4B] font-semibold text-[17px] flex items-center justify-center transition-colors active:bg-[#E5E8EB] focus:outline-none cursor-pointer mb-4" data-purpose="timer-stop-button" type="button">
+    그만하기
+  </button>
+<!-- Toss Floating Tab Bar: 64px tall, rounded-full, soft shadow, #FFFFFF -->
+<nav aria-label="하단 탭 메뉴" class="w-full h-[64px] rounded-full bg-white flex items-center justify-around px-6 mb-3 border border-[#E5E8EB]/50 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+<!-- Active Tab: 타이머 -->
+<button class="flex flex-col items-center justify-center gap-1 text-[#191F28] cursor-pointer focus:outline-none" type="button">
+<svg fill="none" height="22" stroke="#191F28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="22">
+<circle cx="12" cy="13" r="8"></circle>
+<line x1="12" x2="12" y1="9" y2="13"></line>
+<line x1="12" x2="12" y1="5" y2="2"></line>
+</svg>
+<span class="text-[12px] font-bold leading-none tracking-tight">타이머</span>
+</button>
+<!-- Inactive Tab: 밤하늘 -->
+<button class="flex flex-col items-center justify-center gap-1 text-[#8B95A1] hover:text-[#4E5968] cursor-pointer focus:outline-none transition-colors" type="button">
+<svg fill="none" height="22" stroke="#8B95A1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="22">
+<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+</svg>
+<span class="text-[12px] font-medium leading-none tracking-tight">밤하늘</span>
+</button>
+</nav>
+</div>
+<!-- END: BottomControlsSection -->
+</div>
+<!-- END: MainContainer -->
+</body></html>
