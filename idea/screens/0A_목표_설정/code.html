@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="ko" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
+<title>별도로 - 타이머</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandYellow: '#FFEF4D',
+            brandDark: '#000000',
+            brandSlate: '#23272F',
+            brandMuted: '#7C828D',
+            brandText: '#EEF0F3',
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+            mono: ['"Archivo Narrow"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- CSS Styles -->
+<style data-purpose="custom-layout">
+    /* Prevent default elastic scrolling & assure 390x844 mobile viewport */
+    html, body {
+      background-color: #000000;
+      color: #EEF0F3;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    #app-container {
+      width: 390px;
+      height: 844px;
+      max-height: 844px;
+      position: relative;
+      background-color: #000000;
+      overflow: hidden;
+    }
+
+    /* Tab glow styling */
+    .active-tab-glow {
+      box-shadow: 0 0 12px rgba(255, 239, 77, 0.45);
+    }
+
+    /* Ambient Dial Glow */
+    .dial-halo-glow {
+      filter: blur(28px);
+      background: radial-gradient(circle, rgba(255, 239, 77, 0.16) 0%, rgba(255, 239, 77, 0.05) 50%, transparent 70%);
+    }
+
+    /* Diagonal stripe pattern for 5-min rest section */
+    .rest-stripe-pattern {
+      fill: url(#diagonalHatch);
+    }
+
+    /* Precision crosshair corner markers for primary button */
+    .crosshair-corner {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+      color: #FFEF4D;
+    }
+    .crosshair-tl { top: -6px; left: -6px; }
+    .crosshair-tr { top: -6px; right: -6px; }
+    .crosshair-bl { bottom: -6px; left: -6px; }
+    .crosshair-br { bottom: -6px; right: -6px; }
+  </style>
+</head>
+<body>
+<!-- BEGIN: MainContainer -->
+<div class="flex flex-col justify-between items-center px-4 py-0" data-purpose="mobile-screen-wrapper" id="app-container"><!-- Top Header & Card Selection Section -->
+<div class="w-full max-w-[358px] flex flex-col pt-10">
+<!-- Header Section -->
+<div class="flex flex-col mb-7">
+<h1 class="text-[24px] font-bold text-[#EEF0F3] leading-snug tracking-normal">목표 별자리를 골라 주세요</h1>
+<p class="text-[14px] text-[#949AA6] mt-2 tracking-normal">세트를 마칠 때마다 별이 하나씩 켜져요</p>
+</div>
+<!-- Constellation Selection Cards List -->
+<div class="flex flex-col gap-3 w-full">
+<!-- Card 1: 삼각형자리 (SELECTED) -->
+<div class="w-full rounded-2xl p-4 flex items-center justify-between cursor-pointer border-2 border-[#FFEF4D] shadow-[0_0_16px_rgba(255,239,77,0.15)]" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);">
+<div class="flex items-center gap-3.5">
+<!-- Constellation Preview Box (72x72) -->
+<div class="w-[72px] h-[72px] rounded-xl bg-[#090B0E] flex items-center justify-center flex-shrink-0 border border-[#2B303A]">
+<svg fill="none" height="56" viewbox="0 0 56 56" width="56" xmlns="http://www.w3.org/2000/svg">
+<!-- Triangle constellation lines -->
+<line stroke="#FFEF4D" stroke-opacity="0.9" stroke-width="1.5" x1="28" x2="13" y1="12" y2="42"></line>
+<line stroke="#FFEF4D" stroke-opacity="0.9" stroke-width="1.5" x1="28" x2="43" y1="12" y2="42"></line>
+<line stroke="#FFEF4D" stroke-opacity="0.9" stroke-width="1.5" x1="13" x2="43" y1="42" y2="42"></line>
+<!-- Stars (glowing dots) -->
+<circle cx="28" cy="12" fill="#FFEF4D" filter="drop-shadow(0 0 4px #FFEF4D)" r="3.5"></circle>
+<circle cx="13" cy="42" fill="#FFEF4D" filter="drop-shadow(0 0 4px #FFEF4D)" r="3.5"></circle>
+<circle cx="43" cy="42" fill="#FFEF4D" filter="drop-shadow(0 0 4px #FFEF4D)" r="3.5"></circle>
+</svg>
+</div>
+<!-- Card Text Details -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center gap-2">
+<span class="text-[17px] font-bold text-[#EEF0F3] leading-none">삼각형자리</span>
+<span class="text-[11px] font-medium text-[#FFEF4D] border border-[#FFEF4D] px-1.5 py-0.5 rounded leading-none">처음이라면 추천</span>
+</div>
+<p class="text-[14px] text-[#949AA6] leading-none">오늘 3세트 · 1시간 30분</p>
+</div>
+</div>
+<!-- Selected Indicator Check Circle -->
+<div class="w-6 h-6 rounded-full bg-[#FFEF4D] flex items-center justify-center flex-shrink-0 ml-2 shadow-[0_0_8px_rgba(255,239,77,0.5)]">
+<svg fill="none" height="10" viewbox="0 0 14 10" width="14" xmlns="http://www.w3.org/2000/svg">
+<path d="M1.5 5.2L4.8 8.5L12.5 1.5" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+</svg>
+</div>
+</div>
+<!-- Card 2: 카시오페이아자리 (UNSELECTED) -->
+<div class="w-full rounded-2xl p-4 flex items-center justify-between cursor-pointer border border-[#7C828D]/45 hover:border-[#7C828D] transition-colors" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);">
+<div class="flex items-center gap-3.5">
+<!-- Constellation Preview Box (72x72) -->
+<div class="w-[72px] h-[72px] rounded-xl bg-[#090B0E] flex items-center justify-center flex-shrink-0 border border-[#2B303A]">
+<svg fill="none" height="56" viewbox="0 0 56 56" width="56" xmlns="http://www.w3.org/2000/svg">
+<!-- W constellation lines -->
+<polyline fill="none" points="10,18 20,38 29,22 38,40 48,22" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"></polyline>
+<!-- Stars -->
+<circle cx="10" cy="18" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="20" cy="38" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="29" cy="22" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="38" cy="40" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="48" cy="22" fill="#D1D5DB" r="2.5"></circle>
+</svg>
+</div>
+<!-- Card Text Details -->
+<div class="flex flex-col gap-1.5">
+<span class="text-[17px] font-bold text-[#EEF0F3] leading-none">카시오페이아자리</span>
+<p class="text-[14px] text-[#949AA6] leading-none">오늘 5세트 · 2시간 30분</p>
+</div>
+</div>
+</div>
+<!-- Card 3: 북두칠성 (UNSELECTED) -->
+<div class="w-full rounded-2xl p-4 flex items-center justify-between cursor-pointer border border-[#7C828D]/45 hover:border-[#7C828D] transition-colors" style="background: linear-gradient(135deg, #0F1216 0%, #23272F 100%);">
+<div class="flex items-center gap-3.5">
+<!-- Constellation Preview Box (72x72) -->
+<div class="w-[72px] h-[72px] rounded-xl bg-[#090B0E] flex items-center justify-center flex-shrink-0 border border-[#2B303A]">
+<svg fill="none" height="56" viewbox="0 0 56 56" width="56" xmlns="http://www.w3.org/2000/svg">
+<!-- Big Dipper handle + bowl lines -->
+<polyline fill="none" points="8,16 18,22 26,28 35,31 46,29 48,43 36,44 35,31" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"></polyline>
+<!-- Stars -->
+<circle cx="8" cy="16" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="18" cy="22" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="26" cy="28" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="35" cy="31" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="46" cy="29" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="48" cy="43" fill="#D1D5DB" r="2.5"></circle>
+<circle cx="36" cy="44" fill="#D1D5DB" r="2.5"></circle>
+</svg>
+</div>
+<!-- Card Text Details -->
+<div class="flex flex-col gap-1.5">
+<span class="text-[17px] font-bold text-[#EEF0F3] leading-none">북두칠성</span>
+<p class="text-[14px] text-[#949AA6] leading-none">이번 주 7세트 · 하루 1세트씩</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Primary CTA Button Section -->
+<div class="w-full max-w-[358px] pb-9 flex flex-col items-center">
+<div class="relative w-full h-[52px]">
+<!-- Nocturne Focus Corner Plus (+) Indicators -->
+<span aria-hidden="true" class="crosshair-corner crosshair-tl">+</span>
+<span aria-hidden="true" class="crosshair-corner crosshair-tr">+</span>
+<span aria-hidden="true" class="crosshair-corner crosshair-bl">+</span>
+<span aria-hidden="true" class="crosshair-corner crosshair-br">+</span>
+<!-- Main CTA Button -->
+<button class="w-full h-full bg-[#FFEF4D] text-[#000000] font-bold text-[16px] tracking-normal flex items-center justify-center rounded-none active:bg-[#e6d843] transition-colors focus:outline-none cursor-pointer" type="button">
+      이 별자리로 정하기
+    </button>
+</div>
+</div></div>
+<!-- END: MainContainer -->
+</body></html>
