@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html lang="ko" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>별모도로 - 타이머</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,600;0,700;1,700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #000000;
+      color: #EEF0F3;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .font-num {
+      font-family: 'Archivo Narrow', sans-serif;
+      font-feature-settings: "tnum";
+    }
+    .crosshair-corner {
+      position: relative;
+    }
+    .crosshair-corner::before,
+    .crosshair-corner::after {
+      content: '';
+      position: absolute;
+      pointer-events: none;
+    }
+    /* Corner cross marks */
+    .cross-top-left {
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-top-right {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-left {
+      position: absolute;
+      bottom: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-right {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-mark {
+      stroke: #FFEF4D;
+      stroke-width: 1.5;
+    }
+    .glow-yellow {
+      box-shadow: 0 0 16px rgba(255, 239, 77, 0.5);
+    }
+    .glow-text {
+      text-shadow: 0 0 10px rgba(255, 239, 77, 0.4);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-between w-full max-w-[390px] mx-auto relative selection:bg-[#FFEF4D] selection:text-black" style="font-family: 'Noto Sans KR', sans-serif; background-color: #FFFFFF; color: #191F28; margin: 0; padding: 0; width: 100vw; min-height: 100vh; overflow-x: hidden;">
+<!-- Desktop App Container (1440 max / 720 center content) -->
+<div class="w-full min-h-screen flex flex-col items-center bg-[#FFFFFF] px-4 pt-0 pb-28 relative"><header class="w-full h-[54px] max-w-[358px] flex items-center justify-between border-b border-[#F2F4F6] shrink-0 sticky top-0 bg-[#FFFFFF]/95 backdrop-blur z-20"><div class="flex items-center space-x-2.5"><button aria-label="뒤로가기" class="w-8 h-8 flex items-center justify-center -ml-1 text-[#191F28] hover:bg-[#F2F4F6] rounded-full transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg></button><div class="w-6 h-6 rounded-lg bg-[#0E1430] flex items-center justify-center shadow-sm shrink-0"><svg class="w-3.5 h-3.5 text-[#FFE14D]" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"></path></svg></div><span class="text-[17px] font-semibold text-[#191F28] tracking-tight">별모도로</span></div><div class="flex items-center space-x-1"><button aria-label="더보기" class="w-8 h-8 flex items-center justify-center text-[#191F28] hover:bg-[#F2F4F6] rounded-full transition-colors"><svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg></button><button aria-label="닫기" class="w-8 h-8 flex items-center justify-center text-[#191F28] hover:bg-[#F2F4F6] rounded-full transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg></button></div></header><main class="w-full max-w-[358px] flex flex-col items-stretch space-y-5 pt-3"><div class="flex items-center justify-between w-full pt-1 pb-1"><div class="flex flex-col text-left"><div class="flex items-center space-x-1.5 text-[16px] font-semibold text-[#191F28]"><span>오리온자리</span><span class="text-[#6B7684] text-[14px] font-normal">·</span><span>0/3세트</span><span class="text-[#6B7684] text-[14px] font-normal">·</span><span>오늘</span></div><div class="flex items-center space-x-1 mt-0.5"><span class="text-[14px] text-[#6B7684]">처음이라 추천 목표로 정했어요</span><span class="text-[14px] text-[#6B7684]">·</span><button class="text-[14px] text-[#6B7684] underline cursor-pointer hover:text-[#191F28] transition-colors border-none bg-transparent p-0" type="button">목표 바꾸기</button></div></div><button aria-label="도움말" class="w-8 h-8 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] transition-colors flex items-center justify-center text-[#6B7684] font-semibold text-[15px] cursor-pointer shrink-0" type="button">?</button></div><div class="w-full flex items-center justify-center py-2"><div class="relative flex items-center justify-center" style="width: 270px; height: 270px;"><svg class="w-full h-full -rotate-90" viewbox="0 0 270 270"><defs><pattern height="6" id="restHatch" patterntransform="rotate(45)" patternunits="userSpaceOnUse" width="6"><line stroke="#FFEF4D" stroke-width="1.5" x1="0" x2="0" y1="0" y2="6"></line></pattern></defs><circle cx="135" cy="135" fill="none" r="126" stroke="#D1D6DB" stroke-width="1.5"></circle><circle cx="135" cy="135" fill="none" r="53" stroke="#FFE14D" stroke-dasharray="277.5 333" stroke-dashoffset="-55.5" stroke-width="106"></circle><circle cx="135" cy="135" fill="none" r="53" stroke="#1C2650" stroke-dasharray="55.5 333" stroke-dashoffset="0" stroke-width="106"></circle><circle cx="135" cy="135" fill="none" r="53" stroke="url(#restHatch)" stroke-dasharray="55.5 333" stroke-dashoffset="0" stroke-width="106"></circle><g opacity="0.6" stroke="#191F28" stroke-width="1.5"><line x1="135" x2="135" y1="9" y2="17"></line><line x1="261" x2="253" y1="135" y2="135"></line><line x1="135" x2="135" y1="261" y2="253"></line><line x1="9" x2="17" y1="135" y2="135"></line><line x1="198" x2="194" y1="26" y2="33"></line><line x1="244" x2="237" y1="72" y2="76"></line><line x1="244" x2="237" y1="198" y2="194"></line><line x1="198" x2="194" y1="244" y2="237"></line><line x1="72" x2="76" y1="244" y2="237"></line><line x1="26" x2="33" y1="198" y2="194"></line><line x1="26" x2="33" y1="72" y2="76"></line><line x1="72" x2="76" y1="26" y2="33"></line></g><circle cx="135" cy="135" fill="#191F28" r="5"></circle></svg></div></div><div class="text-center flex flex-col items-center space-y-1 pt-1"><div class="text-[64px] font-bold text-[#191F28] tracking-tight leading-none font-num">25 : 00</div><p class="text-[14px] text-[#6B7684] font-normal leading-normal">25분 집중하고 5분 쉬면 별이 차오르기 시작해요</p></div><div class="w-full pt-4"><button class="w-full h-[56px] bg-[#FFE14D] hover:bg-[#FADC3D] active:scale-[0.99] text-[#191F28] font-bold text-[17px] rounded-[16px] transition-all flex items-center justify-center cursor-pointer shadow-none border-none" type="button">시작</button></div></main><nav aria-label="하단 탭 메뉴" class="fixed bottom-3 left-4 right-4 max-w-[358px] mx-auto h-[62px] bg-[#FFFFFF] rounded-full border border-[#F2F4F6] flex items-center justify-around px-6 z-30" style="box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);"><a class="flex flex-col items-center justify-center text-[#191F28]" href="#"><svg class="w-5 h-5 mb-0.5 text-[#191F28]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg><span class="text-[11px] font-bold">타이머</span></a><a class="flex flex-col items-center justify-center text-[#8B95A1] hover:text-[#191F28] transition-colors" href="#"><svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"></path></svg><span class="text-[11px] font-medium">밤하늘</span></a></nav></div>
+</body></html>

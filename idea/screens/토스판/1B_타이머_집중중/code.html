@@ -81,8 +81,8 @@
 </header>
 <!-- Status Pill: '집중 중' (#FFF0A0 background, #7A5C00 text) -->
 <div class="mt-5 flex items-center justify-center">
-<div class="px-3.5 py-1 rounded-full bg-[#FFF0A0] text-[#7A5C00] text-[13px] font-semibold tracking-tight shadow-xs flex items-center gap-1.5">
-<span class="w-1.5 h-1.5 rounded-full bg-[#7A5C00]"></span>
+<div class="px-3.5 py-1 rounded-full bg-[#1C2650] text-[#FFE14D] text-[13px] font-semibold tracking-tight shadow-xs flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#FFE14D]"></span>
 <span>집중 중</span>
 </div>
 </div>
@@ -92,50 +92,43 @@
 <div class="relative flex items-center justify-center w-[250px] h-[250px] my-auto" data-purpose="timer-visual-clock">
 <!-- Clock Face SVG (Clean light mode, 240px diameter) -->
 <svg class="relative z-10 w-[240px] h-[240px]" data-purpose="clock-dial-svg" fill="none" viewbox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-<defs>
-<!-- Diagonal stripe pattern for 5-min rest sector (0° to 60°) -->
-<pattern height="8" id="diagonalHatchLight" patterntransform="rotate(45 0 0)" patternunits="userSpaceOnUse" width="8">
-<line stroke="#FFEF4D" stroke-width="2" x1="0" x2="0" y1="0" y2="8"></line>
-</pattern>
-</defs>
 <!-- Outer subtle rim stroke -->
-<circle cx="120" cy="120" fill="#FFFFFF" r="116" stroke="#D1D6DB" stroke-width="1.5"></circle>
-<!-- 60° to 210° Elapsed portion of focus slice: light gray #F2F4F6 (half of 25m passed) -->
-<path d="M 120 120 L 220.45 62 A 116 116 0 0 1 62 220.45 Z" fill="#F2F4F6"></path>
-<!-- 210° to 360° (0°) Remaining portion of focus slice: solid #FFE14D (12:30 left) -->
-<path d="M 120 120 L 62 220.45 A 116 116 0 0 1 120 4 Z" fill="#FFE14D"></path>
-<!-- 0° to 60° (12 to 2 o'clock) Rest Sector: dark navy #1C2650 base + yellow diagonal hatch -->
-<path d="M 120 120 L 120 4 A 116 116 0 0 1 220.45 62 Z" fill="#1C2650"></path>
-<path d="M 120 120 L 120 4 A 116 116 0 0 1 220.45 62 Z" fill="url(#diagonalHatchLight)" fill-opacity="0.65"></path>
-<!-- Perimeter tick marks in #191F28 -->
+<circle cx="120" cy="120" fill="#0E1430" r="116" stroke="#0E1430" stroke-width="1.5"></circle>
+<!-- 60° to 210° Focus remaining sector: #FFE14D -->
+<path d="M 120 120 L 220.45 62 A 116 116 0 0 1 62 220.45 Z" fill="#FFE14D"></path>
+<!-- 210° to 360° (0°) Passed sector: #0E1430 -->
+<path d="M 120 120 L 62 220.45 A 116 116 0 0 1 120 4 Z" fill="#0E1430"></path>
+<!-- 0° to 60° Rest Sector: #576CC4 -->
+<path d="M 120 120 L 120 4 A 116 116 0 0 1 220.45 62 Z" fill="#576CC4"></path>
+<!-- Perimeter tick marks -->
 <!-- 12 o'clock (0°) -->
-<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="120" x2="120" y1="4" y2="18"></line>
+<line stroke="#6B7684" stroke-linecap="round" stroke-width="2.5" x1="120" x2="120" y1="4" y2="18"></line>
 <!-- 1 o'clock (30°) -->
 <line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="178" x2="171" y1="19.5" y2="31.6"></line>
 <!-- 2 o'clock (60°) -->
-<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="220.4" x2="208.3" y1="62" y2="69"></line>
+<line stroke="#6B7684" stroke-linecap="round" stroke-width="2.5" x1="220.4" x2="208.3" y1="62" y2="69"></line>
 <!-- 3 o'clock (90°) -->
-<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="236" x2="222" y1="120" y2="120"></line>
+<line stroke="#6B7684" stroke-linecap="round" stroke-width="2.5" x1="236" x2="222" y1="120" y2="120"></line>
 <!-- 4 o'clock (120°) -->
 <line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="220.4" x2="208.3" y1="178" y2="171"></line>
 <!-- 5 o'clock (150°) -->
 <line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="178" x2="171" y1="220.5" y2="208.4"></line>
 <!-- 6 o'clock (180°) -->
-<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="120" x2="120" y1="236" y2="222"></line>
-<!-- 7 o'clock (210°) Boundary of remaining/elapsed -->
-<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="62" x2="69" y1="220.5" y2="208.4"></line>
+<line stroke="#6B7684" stroke-linecap="round" stroke-width="2.5" x1="120" x2="120" y1="236" y2="222"></line>
+<!-- 7 o'clock (210°) -->
+<line stroke="#6B7684" stroke-linecap="round" stroke-width="2.5" x1="62" x2="69" y1="220.5" y2="208.4"></line>
 <!-- 8 o'clock (240°) -->
 <line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="19.5" x2="31.7" y1="178" y2="171"></line>
 <!-- 9 o'clock (270°) -->
-<line stroke="#191F28" stroke-linecap="round" stroke-width="2.5" x1="4" x2="18" y1="120" y2="120"></line>
+<line stroke="#6B7684" stroke-linecap="round" stroke-width="2.5" x1="4" x2="18" y1="120" y2="120"></line>
 <!-- 10 o'clock (300°) -->
 <line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="19.5" x2="31.7" y1="62" y2="69"></line>
 <!-- 11 o'clock (330°) -->
 <line stroke="#8B95A1" stroke-linecap="round" stroke-width="2" x1="62" x2="69" y1="19.5" y2="31.6"></line>
 <!-- Sector Dividers -->
-<line stroke="#FFFFFF" stroke-width="2" x1="120" x2="120" y1="120" y2="4"></line>
-<line stroke="#FFFFFF" stroke-width="2" x1="120" x2="220.45" y1="120" y2="62"></line>
-<line stroke="#FFFFFF" stroke-width="2" x1="120" x2="62" y1="120" y2="220.45"></line>
+<line stroke="#0E1430" stroke-width="2" x1="120" x2="120" y1="120" y2="4"></line>
+<line stroke="#0E1430" stroke-width="2" x1="120" x2="220.45" y1="120" y2="62"></line>
+<line stroke="#0E1430" stroke-width="2" x1="120" x2="62" y1="120" y2="220.45"></line>
 <!-- Center hub & dot in #191F28 -->
 <circle cx="120" cy="120" fill="#FFFFFF" r="10" stroke="#191F28" stroke-width="3"></circle>
 <circle cx="120" cy="120" fill="#191F28" r="3.5"></circle>
@@ -167,8 +160,8 @@
 <span class="text-[12px] font-bold leading-none tracking-tight">타이머</span>
 </button>
 <!-- Inactive Tab: 밤하늘 -->
-<button class="flex flex-col items-center justify-center gap-1 text-[#8B95A1] hover:text-[#4E5968] cursor-pointer focus:outline-none transition-colors" type="button">
-<svg fill="none" height="22" stroke="#8B95A1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="22">
+<button class="flex flex-col items-center justify-center gap-1 text-[#6B7684] hover:text-[#4E5968] cursor-pointer focus:outline-none transition-colors" type="button">
+<svg fill="none" height="22" stroke="#6B7684" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="22">
 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
 </svg>
 <span class="text-[12px] font-medium leading-none tracking-tight">밤하늘</span>

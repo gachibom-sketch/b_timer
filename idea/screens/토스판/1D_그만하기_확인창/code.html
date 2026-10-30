@@ -160,26 +160,10 @@
 <!-- Timer Page Content behind dialog -->
 <div class="relative flex-1 flex flex-col items-center justify-between px-6 pt-5 pb-28">
 <!-- Goal & Session Status Header -->
-<div class="w-full flex items-center justify-center"><div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0A0] text-[#7A5C00] text-xs font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-[#7A5C00]"></span>집중 중</div></div>
+<div class="w-full flex items-center justify-center"><div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1C2650] text-[#FFE14D] text-xs font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-[#FFE14D]"></span>집중 중</div></div>
 <!-- Dial Container on White -->
 <div class="relative w-[240px] h-[240px] flex items-center justify-center my-auto">
-<svg class="w-[240px] h-[240px] -rotate-90 transform" viewbox="0 0 240 240">
-<defs>
-<pattern height="6" id="toss-stripes" patterntransform="rotate(45 0 0)" patternunits="userSpaceOnUse" width="6">
-<line stroke="#FFEF4D" stroke-width="1.8" x1="0" x2="0" y1="0" y2="6"></line>
-<line stroke="#1C2650" stroke-width="4.2" x1="0" x2="6" y1="0" y2="0"></line>
-</pattern>
-</defs>
-<!-- Outer Ring Track -->
-<circle cx="120" cy="120" fill="none" r="104" stroke="#E5E8EB" stroke-width="2"></circle>
-<!-- Focus Slice (300deg arc): #FFE14D -->
-<path d="M 120 120 L 172 206.6 A 100 100 0 1 1 220 120 Z" fill="#FFE14D"></path>
-<!-- Rest Slice (60deg arc): diagonal hatch -->
-<path d="M 120 120 L 220 120 A 100 100 0 0 1 172 206.6 Z" fill="url(#toss-stripes)" stroke="#1C2650" stroke-width="0.5"></path>
-<!-- Center Dot & Pivot -->
-<circle cx="120" cy="120" fill="#191F28" r="7"></circle>
-<circle cx="120" cy="120" fill="#FFFFFF" r="2.5"></circle>
-</svg>
+<svg class="w-[240px] h-[240px] -rotate-90 transform" viewbox="0 0 240 240"><circle cx="120" cy="120" fill="#0E1430" r="104"></circle><path d="M 120 120 L 170 206.6 A 100 100 0 0 1 33.4 70 Z" fill="#FFE14D"></path><path d="M 120 120 L 33.4 70 A 100 100 0 0 1 220 120 Z" fill="#0E1430"></path><path d="M 120 120 L 220 120 A 100 100 0 0 1 170 206.6 Z" fill="#576CC4"></path><circle cx="120" cy="120" fill="#FFFFFF" r="7"></circle><circle cx="120" cy="120" fill="#191F28" r="2.5"></circle></svg>
 </div>
 <!-- Large Digital Timer & Subtext -->
 <div class="flex flex-col items-center mb-6">
@@ -198,10 +182,7 @@
 <span class="material-symbols-outlined text-[22px]">timer</span>
 <span class="text-[11px] font-bold">타이머</span>
 </div>
-<div class="flex flex-col items-center justify-center gap-0.5 text-[#8B95A1]">
-<svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-<span class="text-[11px] font-medium">밤하늘</span>
-</div>
+<div class="flex flex-col items-center justify-center gap-0.5 text-[#6B7684]"><svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg><span class="text-[11px] font-medium">밤하늘</span></div>
 </nav>
 <!-- Toss Dimmed Modal Overlay -->
 <div class="absolute inset-0 bg-black/40 z-20"></div>
@@ -209,9 +190,7 @@
 <div class="absolute inset-0 z-30 flex items-center justify-center px-6 pointer-events-none">
 <div class="pointer-events-auto w-full max-w-[340px] bg-white rounded-[24px] p-6 shadow-[0_12px_36px_rgba(0,0,0,0.14)] flex flex-col items-center text-center">
 <!-- Crescent Moon Icon -->
-<div class="w-12 h-12 rounded-full bg-[#FFF9CC] flex items-center justify-center mb-4 text-[#D9A600]">
-<span class="material-symbols-outlined text-[26px]">bedtime</span>
-</div>
+<div class="w-12 h-12 rounded-full bg-[#1C2650] flex items-center justify-center mb-4 text-[#FFE14D]"><span class="material-symbols-outlined text-[26px]">bedtime</span></div>
 <!-- Dialog Title -->
 <h2 class="text-[20px] font-bold text-[#191F28] leading-[1.35] tracking-tight mb-6">이번 세트는 별이 되지 않아요</h2>
 <!-- Subtitle -->
@@ -222,9 +201,7 @@
           그만하기
         </button>
 <!-- Primary Button: 계속하기 -->
-<button class="flex-1 h-[52px] bg-[#FFE14D] text-[#191F28] font-bold text-[16px] rounded-[16px] flex items-center justify-center hover:bg-[#ffd92a] active:scale-[0.98] transition-all" type="button">
-          계속하기
-        </button>
+<button class="flex-1 h-[52px] bg-[#1C2650] text-[#FFE14D] font-bold text-[16px] rounded-[16px] flex items-center justify-center hover:bg-[#0E1430] active:scale-[0.98] transition-all" type="button">계속하기</button>
 </div>
 </div>
 </div>
