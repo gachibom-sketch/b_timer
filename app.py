@@ -11,7 +11,10 @@ from dotenv import load_dotenv
 
 from browser_store import browser_store
 from card_parts import card_png
-from sky_parts import sky_view
+from constellations import BY_KEY, FREE_CONSTELLATIONS
+from goal_parts import goal_cards
+from goals import find_current, new_goal, next_goal, past_text, period_label, progress_text, same_period, sky_text, star_fill
+from sky_parts import past_list, sky_view
 from timer_parts import set_engine, timer_dial
 
 st.set_page_config(page_title="별모도로", page_icon="🌟")
@@ -26,6 +29,8 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 
 PROGRESS_URL = f"{SUPABASE_URL}/rest/v1/progress"
 EVENT_URL = f"{SUPABASE_URL}/rest/v1/event_log"  # 분석 이벤트 4개 — 날짜·시각·테스터·이벤트 (판정 지표 ①~④ 를 셈)
+GOAL_URL = f"{SUPABASE_URL}/rest/v1/goal_log"  # 목표 표 — 한 줄 = 한 사람의 한 기간 (판정 지표 ⑤·⑥ 을 셈, idea/목표 기록 구조.md)
+GOAL_FIELDS = ["constellation", "period", "period_start", "target", "set_count", "source"]
 HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
 KST = timezone(timedelta(hours=9))  # 이벤트 날짜·시각은 한국 시각으로 남김
 DEMO_TESTER = "0"  # 시연 모드 전용 줄 — 실제 테스터 줄과 섞이지 않음 (수용 기준 19번)
@@ -133,6 +138,39 @@ def save_count(tester, count):  # 그 테스터 줄이 있으면 고치고, 없�
     response.raise_for_status()
 
 
+def load_goals(owner):  # goal_log 표에서 그 사람의 목표 줄, 오래된 것부터
+    response = requests.get(
+        GOAL_URL,
+        headers=HEADERS,
+        params={"select": ",".join(GOAL_FIELDS), "tester": f"eq.{owner}", "order": "id"},
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def save_goals(owner, goals):  # 같은 사람·같은 기간 줄이 있으면 고치고, 없으면 새로 만듦
+    response = requests.post(
+        GOAL_URL,
+        headers={**HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal"},
+        params={"on_conflict": "tester,period,period_start"},
+        json=[{"tester": owner, **{field: goal[field] for field in GOAL_FIELDS}} for goal in goals],
+        timeout=10,
+    )
+    response.raise_for_status()
+
+
+def move_goal(owner, old, goal):  # 목표 바꾸기 — 그 기간 줄을 새 별자리·기간으로 고침 (old = 바꾸기 전 [기간 종류, 기간 시작일])
+    response = requests.patch(
+        GOAL_URL,
+        headers={**HEADERS, "Prefer": "return=minimal"},
+        params={"tester": f"eq.{owner}", "period": f"eq.{old[0]}", "period_start": f"eq.{old[1]}"},
+        json={field: goal[field] for field in GOAL_FIELDS},
+        timeout=10,
+    )
+    response.raise_for_status()
+
+
 def stored_count(owner):  # Supabase 에 저장된 그 줄의 누적 세트 수
     try:
         return load_count(owner)
@@ -142,7 +180,7 @@ def stored_count(owner):  # Supabase 에 저장된 그 줄의 누적 세트 수
 
 
 # 기록을 남기는 곳 — 테스터 링크: Supabase 가 기준이고 브라우저에 사본 · 그냥 주소: 브라우저에만 ·
-# 시연 모드: Supabase 시연 줄에만 · 진행 중 세트의 시작 시각: 브라우저에만 (탭을 닫았다 열어도 이어지게)
+# 시연 모드: Supabase 시연 줄에만 · 진행 중 세트의 시작 시각과 그 목표: 브라우저에만 (탭을 닫았다 열어도 이어지게)
 def owner_key():  # 이 브라우저에 남기는 기록의 이름 — 테스터 번호마다 따로, 그냥 주소는 guest, 시연 모드는 남기지 않음
     if st.session_state.get("demo"):
         return None
@@ -150,8 +188,14 @@ def owner_key():  # 이 브라우저에 남기는 기록의 이름 — 테스터
     return f"t{tester}" if tester else "guest"
 
 
-def local_record():  # 이 브라우저의 기록 — 누적 수, Supabase 에 올렸는지, 진행 중 세트의 시작 시각
-    blank = {"count": 0, "synced": True, "started_at": None}
+def server_owner():  # Supabase 에 남기는 줄 이름 — 시연 모드는 시연 줄, 테스터는 번호, 그냥 주소는 None(브라우저에만)
+    if st.session_state.get("demo"):
+        return DEMO_TESTER
+    return st.session_state.get("tester")
+
+
+def local_record():  # 이 브라우저의 기록 — 누적 수·올렸는지, 진행 중 세트의 시작 시각·목표, 목표 줄·올렸는지
+    blank = {"count": 0, "synced": True, "started_at": None, "started_goal": None, "goals": [], "goals_synced": True}
     return {**blank, **st.session_state.setdefault("local_records", {}).get(owner_key(), {})}
 
 
@@ -176,9 +220,13 @@ def sync_browser():  # 화면을 그리기 전에 브라우저 기록을 한 번
         "count": int(values.get("count") or 0),
         "synced": values.get("synced") is not False,
         "started_at": values.get("started_at"),
+        "started_goal": values.get("started_goal"),
+        "goals": values.get("goals") or [],
+        "goals_synced": values.get("goals_synced") is not False,
     }
     if st.session_state.get("set_started_at") is None and records[key]["started_at"]:  # 탭을 닫기 전 진행 중이던 세트를 이어 감
         st.session_state.set_started_at = float(records[key]["started_at"])
+        st.session_state.set_goal = records[key]["started_goal"]
 
 
 def tester_count(tester):  # 테스터는 Supabase 가 기준 — 브라우저 사본을 맞추고, 저번에 못 올린 세트가 있으면 올림
@@ -205,6 +253,70 @@ def current_count():  # 화면에 보일 누적 세트 수
     if tester is None:
         return local_record()["count"]  # 그냥 주소 — 이 브라우저에만 남김
     return tester_count(tester)
+
+
+def goal_list():  # 이 사람의 목표 줄(오래된 것부터) — 화면을 연 동안 한 번 불러오고, 그 뒤로는 고친 값을 함께 고침
+    lists = st.session_state.setdefault("goal_lists", {})
+    name = owner_key() or "demo"
+    if name in lists:
+        return lists[name]
+    owner, local = server_owner(), local_record()
+    goals = [dict(goal) for goal in local["goals"]]
+    if owner is not None:  # 테스터·시연 — Supabase 가 기준
+        try:
+            if not local["goals_synced"] and goals:  # 저번에 못 올린 목표가 있으면 먼저 올림
+                save_goals(owner, goals)
+            goals = load_goals(owner)
+            keep_local(goals=[dict(goal) for goal in goals], goals_synced=True)
+        except requests.RequestException:  # Supabase 가 안 되면 이 브라우저의 기록으로 보여 줌
+            if not st.session_state.get("offline_noticed"):
+                st.toast("인터넷이 불안정해 이 PC 에 남은 기록으로 보여 드려요.")
+                st.session_state.offline_noticed = True
+    lists[name] = goals
+    return goals
+
+
+def remember_goal(goal, old=None):  # 고친 목표를 브라우저와 Supabase 에 남김 — old 는 목표 바꾸기 전의 [기간 종류, 기간 시작일]
+    goals = goal_list()
+    owner = server_owner()
+    synced = True
+    if owner is not None:
+        try:
+            if old and not same_period(goal, old):
+                move_goal(owner, old, goal)
+            save_goals(owner, goals if not local_record()["goals_synced"] else [goal])  # 저번에 못 올린 목표가 있으면 함께 올림
+        except requests.RequestException:
+            synced = False
+            st.session_state.goal_save_failed = True
+    keep_local(goals=[dict(item) for item in goals], goals_synced=synced)
+
+
+def current_goal():  # 지금 기간의 목표 — 없으면(처음 들어왔을 때·기간이 끝났을 때) 저절로 정해 남김
+    goals = goal_list()
+    today = datetime.now(KST).date()
+    goal = find_current(goals, today)
+    if goal is None:
+        goal = next_goal(goals, today)  # 처음: 추천 목표(오리온자리 하루 3세트), 그 뒤: 지난번 별자리와 같은 목표
+        goals.append(goal)
+        remember_goal(goal)
+    return goal
+
+
+def change_goal(key):  # 화면0 "이 목표로 정하기" — 지금 기간의 목표 줄을 고른 별자리로 고침 (새 줄을 만들지 않음)
+    goal = current_goal()
+    if goal["set_count"] > 0:  # 그사이 세트를 마쳤으면 바꾸지 않음 (목표 바꾸기는 이번 기간 0세트일 때만)
+        return
+    old = [goal["period"], goal["period_start"]]
+    goal.update(new_goal(key, datetime.now(KST).date(), "고름"))  # 한 주 별자리면 기간 시작일이 이번 주 월요일로 바뀜
+    remember_goal(goal, old)
+
+
+def add_set_to_goal():  # 마친 세트를 세트를 시작한 기간의 목표에 셈 — 자정을 넘겨 끝나도 시작한 날의 목표에 들어감
+    key = st.session_state.pop("set_goal", None)
+    goal = next((item for item in reversed(goal_list()) if key and same_period(item, key)), None) or current_goal()
+    goal["set_count"] += 1
+    remember_goal(goal)
+    return goal
 
 
 def set_length():  # 지금 쓰는 단계별 길이(초) — 시연 모드면 집중 1분 + 휴식 12초
@@ -257,23 +369,31 @@ def log_event(event, at=None):  # 분석 이벤트를 event_log 에 남김 — �
         pass  # 인터넷이 끊김 — 모아 두었다가 다음 이벤트 때 다시 보냄, 타이머는 그대로 씀
 
 
-def start_set():  # 시작 · 다음 세트 시작 — 지금 시각을 세트 시작 시각으로 두고 브라우저에도 남김
+def start_set():  # 시작 · 다음 세트 시작 — 지금 시각과 지금 목표를 이 세트의 것으로 두고 브라우저에도 남김
+    goal = current_goal()
     st.session_state.set_started_at = time.time()
-    keep_local(started_at=st.session_state.set_started_at)
+    st.session_state.set_goal = [goal["period"], goal["period_start"]]
+    keep_local(started_at=st.session_state.set_started_at, started_goal=st.session_state.set_goal)
     log_event("세트 시작")
 
 
 def end_set():  # 세트를 끝내고 대기로 돌아감
     st.session_state.set_started_at = None
+    st.session_state.pop("set_goal", None)
     st.session_state.confirming = False
-    keep_local(started_at=None)
+    keep_local(started_at=None, started_goal=None)
 
 
-def complete_set():  # 휴식까지 마친 세트만 누적 +1 (그만둔 세트는 여기에 오지 않음)
+def complete_set():  # 휴식까지 마친 세트만 누적 +1, 그 세트를 시작한 기간의 목표에도 +1 (그만둔 세트는 여기에 오지 않음)
+    goal = add_set_to_goal()
     count = current_count() + 1
     length = set_length()
     log_event("세트 완료", at=st.session_state.set_started_at + length["집중"] + length["휴식"])  # 실제로 끝난 시각 — 탭을 닫아 둔 사이 끝났어도
-    st.session_state.arrival = {"id": st.session_state.set_started_at, "count": count}  # 화면2 에서 별똥별·합쳐지는 연출을 한 번 보여 줌
+    st.session_state.arrival = {  # 화면2 에서 별똥별·차오름 연출을 한 번 보여 줌 — 그 세트가 들어간 목표와 그 뒤의 세트 수
+        "id": st.session_state.set_started_at,
+        "goal": [goal["period"], goal["period_start"]],
+        "count": goal["set_count"],
+    }
     end_set()
     st.session_state.pop("count_input", None)  # 시연 모드 칸도 새 누적 수로 맞춤
     if st.session_state.get("demo"):
@@ -300,18 +420,43 @@ def finish_if_done(current):  # 세트 시간이 다 지났으면 세트 완료�
         st.rerun()  # 바뀐 기록을 바로 브라우저에 쓰도록 한 번 더 그림 — 그 전에 탭을 닫아도 세트가 두 번 세어지지 않게
 
 
-def night_sky(count, height):  # 화면2 밤하늘 — 방금 마친 세트가 있으면 별똥별·합쳐지는 연출을 한 번 보여 줌
+def night_sky(goal, height):  # 화면2 밤하늘 — 지금 기간의 별자리만, 방금 마친 세트가 이 목표에 들어갔으면 별똥별·차오름 연출을 한 번
+    constellation = BY_KEY[goal["constellation"]]
+    count = goal["set_count"]
     arrival = st.session_state.get("arrival")
-    if arrival and arrival["count"] != count:  # 시연 모드에서 누적 수를 바꾸면 연출 없이 바로 그 값으로 (D-1)
+    if arrival and (not same_period(goal, arrival["goal"]) or arrival["count"] != count):  # 자정을 넘겨 어제 목표에 든 세트, 시연 모드에서 세트 수를 바꾼 때는 연출 없이
         arrival = None
+    lit, _, bonus = star_fill(count, goal["target"], len(constellation["stars"]))
     sky_view(
-        layers=star_layers(85),
-        counts=layer_counts(count),
+        constellation,
+        count,
+        goal["target"],
         height=height,
-        label=f"밤하늘 — 누적 {count}세트",
+        label=f"밤하늘 — {sky_text(goal)}, 별 {len(constellation['stars'])}개 중 {lit}개가 다 켜짐" + (f", 덤 별 {bonus}개" if bonus else ""),
+        empty="첫 세트를 마치면 별이 차오르기 시작해요",
         arrival=arrival["id"] if arrival else None,
-        before=layer_counts(count - 1) if arrival else None,
+        before=count - 1 if arrival else None,
     )
+
+
+def past_rows(current):  # 화면2 "지난 별자리" — 지금 기간이 아니고 세트를 한 번 이상 한 기간, 최근 것부터 (세트 0개 기간은 남기지 않음)
+    rows = []
+    past = [goal for goal in goal_list() if goal is not current and goal["set_count"] > 0]
+    for goal in sorted(past, key=lambda goal: goal["period_start"], reverse=True):
+        constellation = BY_KEY[goal["constellation"]]
+        lit, part, _ = star_fill(goal["set_count"], goal["target"], len(constellation["stars"]))
+        done = goal["set_count"] >= goal["target"]
+        extra = goal["set_count"] - goal["target"]
+        rows.append({
+            "constellation": constellation,
+            "name": constellation["name"],
+            "sub": period_label(goal) + (f" · 덤 별 {extra}개" if extra > 0 else "" if done else f" · {past_text(goal)}"),
+            "state": "완성" if done else f"{goal['set_count']}/{goal['target']}세트",
+            "done": done,
+            "lit": lit,
+            "part": part,
+        })
+    return rows
 
 
 @st.cache_data(max_entries=20)  # 같은 누적 수·같은 날·같은 모드의 카드는 다시 그리지 않음 — 날이 바뀌면 새로 그림
@@ -376,19 +521,30 @@ def running_button(shown):  # 2-D 세트 진행 중 — "다음 세트 시작" �
         st.switch_page(timer_page)  # 새 세트는 시작하지 않음
 
 
-def waiting():  # 1-A 대기(0세트) · 1-E 대기(1세트 이상)
+def waiting():  # 1-A 대기(이번 기간 0세트) · 1-E 대기(1세트 이상) — 지금 목표와 진행, 목표 바꾸기
+    goal = current_goal()
+    st.markdown(f"**{progress_text(goal)}**")  # 예: 오리온자리 · 0/3세트 · 오늘
+    first = goal["source"] == "추천"  # 추천 목표가 저절로 정해진 첫 기간
+    can_change = goal["set_count"] == 0  # 목표 바꾸기는 이번 기간에 마친 세트가 없을 때만
+    if first or can_change:
+        with st.container(horizontal=True, gap="small", vertical_alignment="center"):
+            if first:
+                st.caption("처음이라 추천 목표로 정했어요" + (" ·" if can_change else ""), width="content")
+            if can_change and st.button("목표 바꾸기", type="tertiary"):
+                st.session_state.goal_token = time.time()  # 들어올 때마다 지금 목표의 별자리부터 골라 둠
+                st.switch_page(goal_page)
+
     with st.popover("?"):
         st.write("**뽀모도로 타이머란?**")
         st.write("25분 집중과 5분 휴식을 반복하여 집중력을 높이는 시간 관리 도구입니다.")
 
     timer_dial("대기", 0, set_length())  # 꽉 찬 원과 집중 길이(25:00)
-    count = current_count()
-    if count == 0:
-        st.write("25분 집중하고 5분 쉬면 밤하늘에 별이 떠요")
-    else:
-        st.write(f"누적 {count}세트")
+    if goal["set_count"] == 0:
+        st.write("25분 집중하고 5분 쉬면 별이 차오르기 시작해요")
 
     st.button("시작", type="primary", on_click=start_set)
+    if st.session_state.pop("goal_save_failed", False):
+        st.error("목표를 Supabase 에 저장하지 못했어요. 이 PC 에 남겨 두었다가 다음에 열 때 다시 올릴게요.")
 
 
 def timer_screen():  # 화면1 — 대기 · 집중(1-B) · 휴식(1-C) · 그만하기 확인 창(1-D)이 한 화면 안에서 바뀜
@@ -429,11 +585,13 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
     app_frame()
     st.title("별모도로")
 
+    goal = current_goal()
     count = current_count()
     demo = st.session_state.get("demo", False)
-    night_sky(count, height=330 if demo else 420)  # 앱 크기 틀(844 높이)에 단추까지 들어가게 · 시연 모드는 넣는 칸 자리만큼 하늘이 낮아짐
+    night_sky(goal, height=330 if demo else 400)  # 앱 크기 틀(844 높이)에 단추까지 들어가게 · 시연 모드는 넣는 칸 자리만큼 하늘이 낮아짐
     if demo:
         demo_box(count)
+    st.markdown(f"**{sky_text(goal)}**")  # 예: 오리온자리 · 1/3세트 · 오늘 / 오리온자리 완성 · 덤 별 1개 · 오늘
     st.write(f"누적 {count}세트 · 총 {focus_time_text(count)} 집중")
 
     phase = set_phase()
@@ -443,7 +601,7 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
             st.switch_page(timer_page)  # 화면1로 가면서 바로 집중이 시작됨
     else:
         running_button(phase[0])
-    if st.button("카드 만들기", disabled=count == 0, width="stretch"):  # 0세트면 누를 수 없음
+    if st.button("카드 만들기", disabled=goal["set_count"] == 0, width="stretch"):  # 이번 기간에 마친 세트가 없으면 누를 수 없음
         st.switch_page(card_page)
     if st.session_state.get("tester") is None:  # 테스터 링크로 들어온 화면에는 두지 않음 — 테스터 기록이 시연과 섞이지 않게
         st.button(
@@ -454,7 +612,12 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
             help="세트가 끝난 뒤에 바꿀 수 있어요" if phase else None,
         )
 
-    if st.session_state.pop("set_save_failed", False):
+    rows = past_rows(goal)
+    if rows:  # 지난 별자리 — 밤하늘에는 지금 별자리만 보이고, 지난 것은 아래 목록에 한 줄씩
+        st.subheader("지난 별자리")
+        past_list(rows)
+
+    if st.session_state.pop("set_save_failed", False) | st.session_state.pop("goal_save_failed", False):
         st.error("이번 세트를 Supabase 에 저장하지 못했어요. 이 PC 에 남겨 두었다가 다음에 열 때 다시 올릴게요.")
     if st.session_state.pop("save_failed", False):
         st.error("저장하지 못했어요. 잠시 뒤 다시 넣어 주세요.")
@@ -488,11 +651,38 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
     )
 
 
+def goal_screen():  # 화면0 목표 설정 — 무료 별자리 카드 3장(쉬운 것부터), 지금 목표가 골라져 있음, 바꾸지 않으려면 위쪽 "타이머" 탭
+    goal = current_goal()
+    if set_phase() is not None or goal["set_count"] > 0:  # 세트 중이거나 이번 기간에 마친 세트가 있으면 바꿀 수 없음 — 주소로 바로 들어와도
+        st.switch_page(timer_page)
+
+    app_frame()
+    st.header("목표를 정해 주세요")
+    st.caption("세트를 마칠 때마다 별자리가 조금씩 차올라요")
+    cards = [
+        {
+            "key": c["key"],
+            "name": c["name"],
+            "goal": f"{c['period']} {c['goal']}세트 · {c['time']}",  # 예: 하루 3세트 · 약 1시간 30분
+            "tag": "처음이라면 추천" if c["recommended"] else None,
+            "stars": c["stars"],
+            "lines": c["lines"],
+        }
+        for c in FREE_CONSTELLATIONS
+    ]
+    token = st.session_state.setdefault("goal_token", time.time())
+    pick = goal_cards(cards, goal["constellation"], token)
+    if st.button("이 목표로 정하기", type="primary", width="stretch"):
+        change_goal(pick)
+        st.switch_page(timer_page)
+
+
 timer_page = st.Page(timer_screen, title="타이머", default=True)
+goal_page = st.Page(goal_screen, title="목표 설정", url_path="goal", visibility="hidden")  # 탭에는 없고 "목표 바꾸기"로만 들어옴
 sky_page = st.Page(sky_screen, title="밤하늘", url_path="sky")
 card_page = st.Page(card_screen, title="카드 미리보기", url_path="card", visibility="hidden")  # 탭에는 없고 "카드 만들기"로만 들어옴
 
-page = st.navigation([timer_page, sky_page, card_page], position="top")  # 위쪽 탭: 타이머 · 밤하늘
+page = st.navigation([timer_page, sky_page, card_page, goal_page], position="top")  # 위쪽 탭: 타이머 · 밤하늘
 sync_browser()  # 브라우저 기록을 먼저 읽어야 탭을 닫기 전 진행 중이던 세트를 이어 갈 수 있음
 finish_if_done(page)
 page.run()
