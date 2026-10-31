@@ -190,7 +190,7 @@ export default function (component) {
       const is = i < after.lit ? 1 : i === after.lit ? after.part : 0;
       if (node && is > was + 0.001) changed.push(node);
     });
-    if (gotBonus) changed.push(now.bonus[after.bonus - 1]);
+    for (let i = before.state.bonus; i < after.bonus; i++) changed.push(now.bonus[i]);  // 새 덤 별 (시연에서 한꺼번에 늘면 여럿)
     await Promise.all(changed.map((node) => reduce
       ? move(node, [{ opacity: 0 }, { opacity: 1 }], { duration: 900 })
       : pop(node, 1.8)));

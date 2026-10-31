@@ -1,6 +1,5 @@
 import math
 import os
-import random
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -13,7 +12,19 @@ from browser_store import browser_store
 from card_parts import card_png
 from constellations import BY_KEY, FREE_CONSTELLATIONS
 from goal_parts import goal_cards
-from goals import find_current, new_goal, next_goal, past_text, period_label, progress_text, same_period, sky_text, star_fill
+from goals import (
+    card_words,
+    find_current,
+    focus_time_text,
+    new_goal,
+    next_goal,
+    past_text,
+    period_label,
+    progress_text,
+    same_period,
+    sky_text,
+    star_fill,
+)
 from sky_parts import past_list, sky_view
 from timer_parts import set_engine, timer_dial
 
@@ -35,6 +46,7 @@ HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
 KST = timezone(timedelta(hours=9))  # 이벤트 날짜·시각은 한국 시각으로 남김
 DEMO_TESTER = "0"  # 시연 모드 전용 줄 — 실제 테스터 줄과 섞이지 않음 (수용 기준 19번)
 APP_WIDTH = 390  # 앱 크기 틀의 폭(px) — 와이어프레임의 휴대폰 화면(390 × 844)과 같음
+APP_ADDRESS = "btimer.streamlit.app"  # 화면3 카드 하단에 넣는 배포 주소 (2026-10-30 배포)
 
 # 한 세트의 단계별 길이(초) — 시연 모드(…/?demo=1)는 집중 1분 + 휴식 12초
 SET_LENGTH = {"집중": 25 * 60, "휴식": 5 * 60}
@@ -46,7 +58,7 @@ if tester and re.fullmatch(r"[0-9]{1,4}", tester) and tester != DEMO_TESTER:
     st.session_state.tester = tester
     st.query_params["t"] = tester
 
-# 시연 모드 — 시연 링크(…/?demo=1)로 들어오거나 화면2의 "시연 모드" 단추로 켬, 켜진 동안 주소에 ?demo=1 을 남겨 둠
+# 시연 모드 — 시연 링크(…/?demo=1)로만 켜고 화면2 의 "시연 모드 끄기"로 끔, 켜진 동안 주소에 ?demo=1 을 남겨 둠
 if "demo" not in st.session_state:
     st.session_state.demo = st.query_params.get("demo") == "1"
 if st.session_state.demo:
@@ -54,56 +66,12 @@ if st.session_state.demo:
 elif "demo" in st.query_params:
     del st.query_params["demo"]
 
-# 별 크기 범례: 별 종류마다 그리는 글자와 크기(px)
-STAR_LOOK = {
-    "대왕별": ("★", 34),
-    "큰별": ("★", 22),
-    "중간별": ("★", 13),
-    "작은별": ("●", 5),
-}
-
-
 def app_frame():  # 화면을 휴대폰 앱 크기의 한 줄 틀에 담음 — 컴퓨터 브라우저에서 앱처럼 보이게 함 (휴대폰 지원은 비목표)
     st.html(  # 스타일만 담은 st.html 은 화면에 자리를 차지하지 않음
         "<style>[data-testid='stMainBlockContainer'] "
         f"{{ max-width: {APP_WIDTH}px; padding: 76px 16px 48px; }}</style>"  # 위: 맨 위 탭 줄(60) 바로 아래부터 · 아래: 기본 여백(160)을 줄여 빈 스크롤이 없게
     )
 
-
-def star_counts(count):  # 10개씩 모이면 한 단계 큰 별로 합쳐짐
-    return {
-        "대왕별": count // 1000,
-        "큰별": count // 100 % 10,
-        "중간별": count // 10 % 10,
-        "작은별": count % 10,
-    }
-
-
-def layer_counts(count):  # 작은별부터 대왕별까지 그릴 개수 — 대왕별 다음 단계가 PRD.md 에 없어서 10개까지만 그림
-    counts = star_counts(count)
-    return [min(counts[kind], 10) for kind in reversed(STAR_LOOK)]
-
-
-def star_slots(top_limit):  # 별 종류마다 10자리(왼쪽 %, 위 %) — 종류마다 자리가 정해져 있어, 숫자를 바꿔도 있던 별은 그 자리에 있음
-    slots = {}
-    for kind in STAR_LOOK:
-        spot = random.Random(kind)
-        slots[kind] = [[round(spot.uniform(6, 90), 1), round(spot.uniform(6, top_limit), 1)] for _ in range(10)]
-    return slots
-
-
-def star_layers(top_limit):  # 작은별부터 대왕별까지 모양·크기·10자리 — 화면2 밤하늘과 화면3 카드가 함께 씀
-    slots = star_slots(top_limit)
-    return [{"mark": STAR_LOOK[kind][0], "size": STAR_LOOK[kind][1], "slots": slots[kind]} for kind in reversed(STAR_LOOK)]
-
-
-def focus_time_text(count):  # 끝까지 마친 세트 × 25분
-    hours, minutes = divmod(count * 25, 60)
-    if hours and minutes:
-        return f"{hours}시간 {minutes}분"
-    if hours:
-        return f"{hours}시간"
-    return f"{minutes}분"
 
 
 def parse_count(text):  # 0 이상의 정수만 받고, 아니면 None
@@ -395,7 +363,7 @@ def complete_set():  # 휴식까지 마친 세트만 누적 +1, 그 세트를 �
         "count": goal["set_count"],
     }
     end_set()
-    st.session_state.pop("count_input", None)  # 시연 모드 칸도 새 누적 수로 맞춤
+    st.session_state.pop("count_input", None)  # 시연 모드 칸도 새 세트 수로 맞춤
     if st.session_state.get("demo"):
         owner = DEMO_TESTER
     else:
@@ -435,7 +403,7 @@ def night_sky(goal, height):  # 화면2 밤하늘 — 지금 기간의 별자리
         label=f"밤하늘 — {sky_text(goal)}, 별 {len(constellation['stars'])}개 중 {lit}개가 다 켜짐" + (f", 덤 별 {bonus}개" if bonus else ""),
         empty="첫 세트를 마치면 별이 차오르기 시작해요",
         arrival=arrival["id"] if arrival else None,
-        before=count - 1 if arrival else None,
+        before=arrival.get("before", count - 1) if arrival else None,  # 세트를 마쳤으면 하나 전, 시연 D-1 이면 바꾸기 전 값
     )
 
 
@@ -459,41 +427,45 @@ def past_rows(current):  # 화면2 "지난 별자리" — 지금 기간이 아�
     return rows
 
 
-@st.cache_data(max_entries=20)  # 같은 누적 수·같은 날·같은 모드의 카드는 다시 그리지 않음 — 날이 바뀌면 새로 그림
-def card_file(count, day, demo):  # 화면3 카드 그림 — 9:16(1080×1920) PNG, 별은 위 2/3에만 뜸 (3-A) · 시연 모드면 DEMO 워터마크
-    return card_png(
-        layers=star_layers(55),
-        counts=layer_counts(count),
-        title=f"{count}세트",
-        subtitle=f"총 {focus_time_text(count)} 집중",
-        date=f"{day} 기준",
-        demo=demo,
-    )
+@st.cache_data(max_entries=20)  # 같은 별자리·같은 기간·같은 세트 수·같은 모드의 카드는 다시 그리지 않음
+def card_file(key, period, period_start, set_count, target, demo):  # 화면3 카드 그림 — 9:16(1080×1920) PNG · 시연 모드면 DEMO 워터마크
+    goal = {"constellation": key, "period": period, "period_start": period_start, "set_count": set_count, "target": target}
+    title, record = card_words(goal)
+    return card_png(BY_KEY[key], set_count, target, title, record, APP_ADDRESS, demo=demo)
 
 
-def set_count(value):  # D-1 빠른 값 단추 — 시연 전용 줄에 저장
-    try:
-        save_count(DEMO_TESTER, value)
-    except requests.RequestException:
+def demo_set_goal(value):  # D-1 — 시연 줄의 이번 기간 세트 수를 그 값으로 (시연 전용 줄 '0' 에만 저장, 실제 기록·이벤트와 섞이지 않음)
+    goal = current_goal()
+    before = goal["set_count"]
+    goal["set_count"] = value
+    remember_goal(goal)
+    if st.session_state.pop("goal_save_failed", False):
+        goal["set_count"] = before
         st.session_state.save_failed = True
         st.session_state.pop("count_input", None)  # 칸을 저장된 값으로 되돌림
         return
     st.session_state.count_input = str(value)
+    if value > before:  # 늘었으면 화면2 에서 차오름·완성·덤 별을 연출로 보여 줌
+        st.session_state.arrival = {"id": time.time(), "goal": [goal["period"], goal["period_start"]], "count": value, "before": before}
 
 
-def apply_count_input():  # D-1 누적 세트 수 칸에서 완료(엔터)를 눌렀을 때
+def apply_count_input():  # D-1 세트 수 칸에서 완료(엔터)를 눌렀을 때 — 0부터 N(목표 세트 수 + 10)까지
+    limit = current_goal()["target"] + 10
     value = parse_count(st.session_state.count_input)
-    if value is None or value > 2147483647:  # set_count 열(int4)에 담을 수 있는 가장 큰 수
-        st.session_state.count_notice = True
+    if value is None or value > limit:
+        st.session_state.count_notice = limit
         st.session_state.pop("count_input", None)  # 칸을 저장된 값으로 되돌림
     else:
-        set_count(value)
+        demo_set_goal(value)
 
 
-@st.dialog("누적 세트 수를 숫자로 넣어 주세요", dismissible=False)
-def count_notice():  # D-1E 누적 세트 수 안내 창
-    if st.button("확인"):
-        st.rerun()
+def count_notice(limit):  # D-1E 세트 수 안내 창 — "확인"을 누르면 D-1 로 돌아감
+    @st.dialog(f"세트 수를 0부터 {limit}까지 숫자로 넣어 주세요", dismissible=False)
+    def notice():
+        if st.button("확인"):
+            st.rerun()
+
+    notice()
 
 
 @st.dialog("이번 세트는 별이 되지 않아요", dismissible=False)
@@ -561,24 +533,27 @@ def timer_screen():  # 화면1 — 대기 · 집중(1-B) · 휴식(1-C) · 그�
         stop_confirm()
 
 
-def toggle_demo():  # 화면2 "시연 모드" 단추 — 켜면 시연 줄과 D-1 칸, 끄면 원래 기록으로 돌아감
-    st.session_state.demo = not st.session_state.demo
-    st.session_state.pop("count_input", None)  # D-1 칸을 새로 켤 때 시연 줄의 누적 수로 맞춤
+def demo_off():  # 화면2 "시연 모드 끄기" — 시연 줄과 D-1 칸을 끄고 원래 기록으로 돌아감 (켜는 것은 시연 링크로만)
+    st.session_state.demo = False
+    st.session_state.pop("count_input", None)
 
 
-def demo_box(count):  # D-1 시연 모드 칸 — 누적 세트 수 바꾸기 (시연 전용 줄에만 저장)
+def demo_box(goal):  # D-1 시연 모드 칸 — 이번 기간 세트 수 바꾸기 (시연 전용 줄에만 저장)
+    target = goal["target"]
     with st.container(border=True):
-        st.caption("시연 모드")
-        st.session_state.setdefault("count_input", str(count))
+        st.caption(f"시연 모드 · 이번 기간 세트 수 (0~{target + 10})")
+        st.session_state.setdefault("count_input", str(goal["set_count"]))
         st.text_input(
-            "누적 세트 수",
+            "이번 기간 세트 수",
             key="count_input",
             on_change=apply_count_input,
-            placeholder="누적 세트 수",
+            placeholder="세트 수",
             label_visibility="collapsed",
         )
-        for col, quick in zip(st.columns(4), [9, 23, 150, 1000]):  # 앱 폭이 좁아 빠른 값 단추는 칸 아래 한 줄에 둠
-            col.button(str(quick), on_click=set_count, args=(quick,), width="stretch")
+        quick = [("0", 0), ("절반", (target + 1) // 2), ("목표 직전", target - 1), ("완성", target), ("덤 별 +3", target + 3)]
+        with st.container(horizontal=True, gap="small"):  # 앱 폭이 좁아 빠른 값 단추는 칸 아래에 이어서 둠
+            for label, value in quick:
+                st.button(label, key=f"quick_{label}", on_click=demo_set_goal, args=(value,))
 
 
 def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 진행 중(2-D) · 시연 모드 칸(D-1)
@@ -590,7 +565,7 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
     demo = st.session_state.get("demo", False)
     night_sky(goal, height=330 if demo else 400)  # 앱 크기 틀(844 높이)에 단추까지 들어가게 · 시연 모드는 넣는 칸 자리만큼 하늘이 낮아짐
     if demo:
-        demo_box(count)
+        demo_box(goal)
     st.markdown(f"**{sky_text(goal)}**")  # 예: 오리온자리 · 1/3세트 · 오늘 / 오리온자리 완성 · 덤 별 1개 · 오늘
     st.write(f"누적 {count}세트 · 총 {focus_time_text(count)} 집중")
 
@@ -603,13 +578,13 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
         running_button(phase[0])
     if st.button("카드 만들기", disabled=goal["set_count"] == 0, width="stretch"):  # 이번 기간에 마친 세트가 없으면 누를 수 없음
         st.switch_page(card_page)
-    if st.session_state.get("tester") is None:  # 테스터 링크로 들어온 화면에는 두지 않음 — 테스터 기록이 시연과 섞이지 않게
+    if demo:  # 시연 모드는 시연 링크(…/?demo=1)로만 켜고, 여기서는 끄기만 함
         st.button(
-            "시연 모드 끄기" if demo else "시연 모드",
-            key="demo_toggle",
-            on_click=toggle_demo,
-            disabled=phase is not None,  # 세트 진행 중에 바꾸면 25분 세트가 시연 길이로 바뀌어 바로 끝나 버림
-            help="세트가 끝난 뒤에 바꿀 수 있어요" if phase else None,
+            "시연 모드 끄기",
+            key="demo_off",
+            on_click=demo_off,
+            disabled=phase is not None,  # 세트 진행 중에 바꾸면 1분 세트가 25분 세트로 바뀜
+            help="세트가 끝난 뒤에 끌 수 있어요" if phase else None,
         )
 
     rows = past_rows(goal)
@@ -621,13 +596,14 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
         st.error("이번 세트를 Supabase 에 저장하지 못했어요. 이 PC 에 남겨 두었다가 다음에 열 때 다시 올릴게요.")
     if st.session_state.pop("save_failed", False):
         st.error("저장하지 못했어요. 잠시 뒤 다시 넣어 주세요.")
-    if st.session_state.pop("count_notice", False):
-        count_notice()
+    limit = st.session_state.pop("count_notice", None)
+    if limit is not None:
+        count_notice(limit)
 
 
-def card_screen():  # 화면3 — 카드 미리보기(3-A)
-    count = current_count()
-    if count == 0:  # 0세트면 카드를 만들 수 없음 — 주소로 바로 들어와도 밤하늘로 돌려보냄
+def card_screen():  # 화면3 — 지금 기간의 별자리 카드 미리보기 (차오르는 중이면 진행 카드, 완성이면 완성 카드)
+    goal = current_goal()
+    if goal["set_count"] == 0:  # 이번 기간에 마친 세트가 없으면 카드를 만들 수 없음 — 주소로 바로 들어와도 밤하늘로 돌려보냄
         st.switch_page(sky_page)
 
     app_frame()
@@ -635,14 +611,15 @@ def card_screen():  # 화면3 — 카드 미리보기(3-A)
     if st.button("←"):
         st.switch_page(sky_page)
 
-    today = datetime.now(KST).strftime("%Y.%m.%d")  # 카드를 만든 날(한국 시각)
-    card = card_file(count, today, st.session_state.get("demo", False))
+    demo = st.session_state.get("demo", False)
+    card = card_file(goal["constellation"], goal["period"], goal["period_start"], goal["set_count"], goal["target"], demo)
     with st.container(horizontal_alignment="center"):
         st.image(card, width=250, caption="9:16 카드 미리보기")  # 내려받는 파일과 같은 그림을 줄여 보여 줌 — 와이어프레임 3-A 처럼 앱 폭의 약 2/3
+    name = BY_KEY[goal["constellation"]]["name"]
     st.download_button(
         "이미지 저장",
         data=card,
-        file_name=f"별모도로_{count}세트.png",
+        file_name=f"별모도로_{name}_{goal['set_count']}세트.png",
         mime="image/png",
         type="primary",
         width="stretch",
