@@ -12,7 +12,7 @@ SKY_HTML = '<div class="sky" role="img"></div>'
 
 SKY_CSS = """
 .sky { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: linear-gradient(180deg, #0E1430 0%, #1C2650 100%); }
-.board { position: absolute; overflow: visible; }
+.board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); aspect-ratio: 1; overflow: visible; }
 .board g.pop { transform-box: fill-box; transform-origin: center; }
 .lit .shape { animation: twinkle var(--twinkle) ease-in-out var(--delay) infinite alternate; }
 @keyframes twinkle { to { opacity: 0.62; } }
@@ -79,11 +79,9 @@ export default function (component) {
   };
 
   // 별자리 판 — 하늘 가운데 정사각형 (constellations.py 의 자리 값이 판 기준 %)
-  const width = sky.clientWidth || 358;
-  const side = Math.min(width, data.height) * 0.9;
-  const [boardLeft, boardTop] = [(width - side) / 2, (data.height - side) / 2];  // svg 에는 offsetLeft 가 없어서 직접 셈
+  // 크기·자리는 CSS 로 맞춤 — 앱 크기 틀(390)이 판보다 늦게 입혀져도 판이 가운데로 따라옴
   const board = el("svg", { class: "board", viewBox: "0 0 100 100", "aria-hidden": "true" });
-  board.style.cssText = `width:${side}px; height:${side}px; left:${boardLeft}px; top:${boardTop}px;`;
+  board.style.width = `min(90%, ${data.height * 0.9}px)`;
   sky.append(board);
   const defs = el("defs", {}, board);
   const glowGradient = el("radialGradient", { id: "star-glow" }, defs);
@@ -146,7 +144,10 @@ export default function (component) {
   }
   seen.add(data.arrival);
 
-  const toPixel = ([x, y]) => [boardLeft + (x / 100) * side, boardTop + (y / 100) * side];
+  const toPixel = ([x, y]) => {  // 별똥별이 떨어지는 순간의 판 자리로 셈
+    const b = board.getBoundingClientRect(), s = sky.getBoundingClientRect();
+    return [b.left - s.left + (x / 100) * b.width, b.top - s.top + (y / 100) * b.height];
+  };
   const meteor = async (pos) => {  // 오른쪽 위에서 비스듬히 떨어져 그 별 자리에서 멈춤
     const [ex, ey] = toPixel(pos);
     const run = Math.max(sky.clientWidth, sky.clientHeight) * 0.7;
