@@ -1,3 +1,5 @@
+import math
+
 import streamlit as st
 
 # 화면1 타이머 부품 — 브라우저 안에서 도는 원형 타이머와, 세트 동안 소리·화면 꺼짐 막기를 맡는 보이지 않는 부품
@@ -39,34 +41,42 @@ function chime(name, notes) {
 """
 
 # 원형 타이머: 한 바퀴 = 한 세트, 12시 옆 휴식 조각 60° + 집중 조각 300°, 남은 부분이 12시 쪽으로 줄어듦 (와이어프레임 1-A·1-B·1-C)
-DIAL_HTML = """
+# 색은 토스판 시안 1A·1B (idea/screens/토스판/DESIGN.md) — 남색 원판(지난 시간은 밤하늘이 됨) · 노란 집중 · 무늬 없는 밝은 남색 휴식
+TICKS = "".join(  # 눈금 12개 — 30° 마다 테두리 안쪽으로 짧게
+    f'<line x1="{120 + 110 * s:.1f}" y1="{120 - 110 * c:.1f}" x2="{120 + 97 * s:.1f}" y2="{120 - 97 * c:.1f}"></line>'
+    for s, c in ((math.sin(math.radians(a)), math.cos(math.radians(a))) for a in range(0, 360, 30))
+)
+
+DIAL_HTML = f"""
 <div class="dial">
   <span class="chip"></span>
   <svg class="face" viewBox="0 0 240 240" role="img" aria-label="원형 타이머">
-    <defs>
-      <pattern id="rest-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width="8" height="8" fill="#ffffff"></rect>
-        <line x1="0" y1="0" x2="0" y2="8" stroke="#33354a" stroke-width="2.5"></line>
-      </pattern>
-    </defs>
     <circle class="track" cx="120" cy="120" r="110"></circle>
     <path class="focus"></path>
     <path class="rest"></path>
     <circle class="ring" cx="120" cy="120" r="110"></circle>
+    <g class="ticks">{TICKS}</g>
+    <circle class="hub" cx="120" cy="120" r="9"></circle>
+    <circle class="pin" cx="120" cy="120" r="3.5"></circle>
   </svg>
   <div class="time"></div>
 </div>
 """
 
 DIAL_CSS = """
-.dial { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 0; }
-.chip { font-size: 13px; padding: 2px 12px; border: 1px solid #c9ccd6; border-radius: 6px; color: #31333f; }
+.dial { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 8px 0; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 999px; background: #1C2650; color: #FFE14D; font-size: 15px; font-weight: 700; }
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #FFE14D; }
+.chip[hidden] { display: none; }
 .face { width: 240px; height: 240px; }
-.track { fill: #ffffff; }
-.focus { fill: #33354a; }
-.rest { fill: url(#rest-hatch); }
-.ring { fill: none; stroke: #33354a; stroke-width: 1.5; }
-.time { font-size: 44px; font-weight: 700; color: #31333f; font-variant-numeric: tabular-nums; }
+.track { fill: #0E1430; }
+.focus { fill: #FFE14D; }
+.rest { fill: #576CC4; }
+.ring { fill: none; stroke: #0E1430; stroke-width: 2; }
+.ticks line { stroke: #6B7684; stroke-width: 3; stroke-linecap: round; }
+.hub { fill: #FFFFFF; stroke: #191F28; stroke-width: 3; }
+.pin { fill: #191F28; }
+.time { font-size: 60px; line-height: 1.1; font-weight: 700; color: #191F28; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 """
 
 DIAL_JS = """
@@ -103,7 +113,8 @@ export default function (component) {
     const inFocus = left > data.rest;
     focus.setAttribute("d", sector(restAngle, Math.max(restAngle, angle)));
     rest.setAttribute("d", sector(0, Math.min(restAngle, angle)));
-    chip.textContent = data.phase === "대기" ? "대기" : inFocus ? "집중" : "휴식";
+    chip.hidden = data.phase === "대기";  // 대기에는 꼬리표 없음 (토스판 1A)
+    chip.textContent = inFocus ? "집중 중" : "휴식 중";
     time.textContent = clock(data.phase === "대기" ? data.focus : inFocus ? left - data.rest : left);
   };
 

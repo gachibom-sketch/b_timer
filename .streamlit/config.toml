@@ -1,0 +1,13 @@
+# 앱 전체 색 — 토스판 밝은 시안(idea/screens/토스판/DESIGN.md)을 웹판에도 씀 (2026-10-31)
+# 단추·꼬리표처럼 이 설정으로 안 되는 모양은 app.py 의 APP_STYLE 에 있음
+[theme]
+base = "light"
+primaryColor = "#1C2650"              # 남색 조각 — 주 단추 바탕, 고른 표시
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F2F4F6"  # 회색 면 — 보조 단추, 입력 칸
+textColor = "#191F28"                 # 본문 글자 (흰 바탕과 16.56:1)
+linkColor = "#1C2650"
+borderColor = "#E5E8EB"               # 가는 선, 카드 테두리
+baseRadius = "16px"
+buttonRadius = "16px"
+font = "Noto Sans KR:https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"

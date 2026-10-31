@@ -1,6 +1,6 @@
 import streamlit as st
 
-# 화면0 별자리 카드 — 큰 별자리 그림 · 이름 · 목표 한 줄, 누르면 그 별자리를 고름 (스티치 시안 0A, PRD 6판 화면 0)
+# 화면0 별자리 카드 — 큰 별자리 그림 · 이름 · 목표 한 줄, 누르면 그 별자리를 고름 (스티치 시안 0A · 색은 토스판 0A, PRD 6판 화면 0)
 # 고른 별자리는 이 화면에 머무는 동안 브라우저가 기억하고, 파이썬에는 {key, token} 으로 알려 줌
 # token 은 화면0 에 새로 들어올 때마다(탭·"목표 바꾸기") 새로 정함 — 지난번에 고른 값이 남아 있어도 섞이지 않게
 # locked 면(세트 중이거나 이번 기간에 마친 세트가 있음) 지금 목표만 골라진 채 카드를 누를 수 없음
@@ -10,23 +10,23 @@ CARDS_CSS = """
 .cards { display: flex; flex-direction: column; gap: 12px; }
 .card {
   display: flex; align-items: center; gap: 14px; width: 100%; padding: 13px; margin: 0;
-  border: 1px solid #E5E8EB; border-radius: 16px; background: #FFFFFF; color: #31333F;
+  border: 1px solid #E5E8EB; border-radius: 20px; background: #FFFFFF; color: #191F28;
   font: inherit; text-align: left; cursor: pointer;
 }
-.card:hover { border-color: #B6BAC2; }
-.card:focus-visible { outline: 3px solid #8C93A8; outline-offset: 2px; }
-.card[aria-checked="true"] { border: 2px solid #33354A; padding: 12px; }
+.card:hover { border-color: #B0B8C1; }
+.card:focus-visible { outline: 3px solid #576CC4; outline-offset: 2px; }
+.card[aria-checked="true"] { border: 2px solid #1C2650; padding: 12px; }
 .pic { width: 104px; height: 104px; flex-shrink: 0; border-radius: 12px; background: linear-gradient(180deg, #0E1430 0%, #1C2650 100%); }
 .text { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
 .name { font-size: 18px; font-weight: 700; white-space: nowrap; }
-.tag { align-self: flex-start; padding: 2px 8px; border-radius: 6px; background: #F0F2F6; font-size: 12px; font-weight: 600; }
-.goal { font-size: 14px; color: #5C6270; white-space: nowrap; }
+.tag { align-self: flex-start; padding: 2px 8px; border-radius: 6px; background: #1C2650; color: #FFE14D; font-size: 12px; font-weight: 700; }
+.goal { font-size: 14px; color: #6B7684; white-space: nowrap; }
 .check {
-  width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; border: 2px solid #D5D8DE;
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; border: 2px solid #D1D6DB;
   display: flex; align-items: center; justify-content: center;
 }
-.card[aria-checked="true"] .check { border-color: #33354A; background: #33354A; }
-.card[aria-checked="true"] .check::after { content: ""; width: 10px; height: 5px; margin-top: -3px; border: solid #FFFFFF; border-width: 0 0 2px 2px; transform: rotate(-45deg); }
+.card[aria-checked="true"] .check { border-color: #1C2650; background: #1C2650; }
+.card[aria-checked="true"] .check::after { content: ""; width: 11px; height: 5px; margin-top: -3px; border: solid #FFE14D; border-width: 0 0 2.5px 2.5px; transform: rotate(-45deg); }
 .card:disabled { cursor: default; }
 .card:disabled:not([aria-checked="true"]) { opacity: 0.45; border-color: #E5E8EB; }
 """

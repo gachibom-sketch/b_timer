@@ -1,3 +1,4 @@
+import html
 import math
 import os
 import re
@@ -67,11 +68,64 @@ if st.session_state.demo:
 elif "demo" in st.query_params:
     del st.query_params["demo"]
 
-def app_frame():  # 화면을 휴대폰 앱 크기의 한 줄 틀에 담음 — 컴퓨터 브라우저에서 앱처럼 보이게 함 (휴대폰 지원은 비목표)
+# 앱 전체 모양 — 토스판 밝은 시안의 단추·꼬리표·창 (색 설정은 .streamlit/config.toml, 규칙은 idea/screens/토스판/DESIGN.md)
+# 노랑은 흰 바탕에 직접 칠하지 않고 남색 조각 위에서만 씀 (흰색과 1.3:1)
+MOON = (  # 그만하기 확인 창의 달 그림표 — st.html 은 svg 를 지우므로 CSS 바탕 그림으로 넣음
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
+    "%3Cpath fill='%23FFE14D' d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/%3E%3C/svg%3E"
+)
+APP_STYLE = """
+[data-testid='stTopNavLink'], [data-testid='stTopNavLink'] * { color: #6B7684; }
+[data-testid='stTopNavLink'][aria-current='page'], [data-testid='stTopNavLink'][aria-current='page'] * { color: #191F28; font-weight: 700; }
+[data-testid='stCaptionContainer'] { color: #6B7684; opacity: 1; }
+
+.stButton button, .stDownloadButton button { min-height: 56px; }
+.stButton button p, .stDownloadButton button p { font-size: 17px; font-weight: 700; }
+[data-testid='stBaseButton-primary'], [data-testid='stBaseButton-primary']:focus:not(:active) { color: #FFE14D; border: none; }
+[data-testid='stBaseButton-primary']:hover, [data-testid='stBaseButton-primary']:active { background: #0E1430; color: #FFE14D; border: none; }
+[data-testid='stBaseButton-secondary'], [data-testid='stBaseButton-secondary']:focus:not(:active) { background: #F2F4F6; color: #333D4B; border: none; }
+[data-testid='stBaseButton-secondary']:hover, [data-testid='stBaseButton-secondary']:active { background: #E5E8EB; color: #191F28; border: none; }
+[data-testid='stBaseButton-secondary']:disabled { background: #F2F4F6; color: #B0B8C1; }
+[class*='st-key-quick_'] .stButton button, [class*='st-key-back_'] .stButton button,
+.st-key-demo_off .stButton button, .st-key-notice_ok .stButton button { min-height: 40px; }
+[class*='st-key-quick_'] .stButton button p, [class*='st-key-back_'] .stButton button p,
+.st-key-demo_off .stButton button p, .st-key-notice_ok .stButton button p { font-size: 15px; font-weight: 500; }
+.stButton [data-testid='stBaseButton-tertiary'] { min-height: 0; padding: 0; color: #6B7684; }
+.stButton [data-testid='stBaseButton-tertiary'] p { font-size: 14px; font-weight: 400; text-decoration: underline; }
+.stButton [data-testid='stBaseButton-tertiary']:hover { color: #191F28; }
+
+[data-testid='stPopoverButton'] { width: 40px; height: 40px; min-height: 40px; padding: 0; border: none; border-radius: 50%; background: #F2F4F6; color: #4E5968; }
+[data-testid='stPopoverButton'] p { font-size: 17px; font-weight: 700; }
+[data-testid='stPopoverButton'] [data-testid='stIconMaterial'] { display: none; }
+
+[data-testid='stDialog'] { background: rgba(0, 0, 0, 0.4); }
+[data-testid='stDialog'] > div { border-radius: 20px; }
+[data-testid='stDialog'] > div:has(.st-key-stop_confirm) h2 { display: block; text-align: center; }
+[data-testid='stDialog'] > div:has(.st-key-stop_confirm) h2 span { display: block; }
+[data-testid='stDialog'] > div:has(.st-key-stop_confirm) h2 p { text-align: center; }
+[data-testid='stDialog'] > div:has(.st-key-stop_confirm) h2::before {
+  content: ""; display: block; width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
+  background: #1C2650 url("MOON") center / 28px no-repeat;
+}
+
+.guide { text-align: center; color: #6B7684; font-size: 15px; margin-bottom: 12px; }
+.sky-line { text-align: center; font-size: 18px; font-weight: 700; color: #191F28; }
+.sky-sub { text-align: center; font-size: 14px; color: #6B7684; margin-bottom: 12px; }
+.sky-sub b { color: #191F28; }
+.badge { display: inline-block; padding: 1px 10px; border-radius: 8px; background: #1C2650; color: #FFE14D; font-weight: 700; }
+""".replace("MOON", MOON)
+
+
+def app_frame():  # 화면을 휴대폰 앱 크기의 한 줄 틀에 담고 앱 전체 모양을 입힘 — 컴퓨터 브라우저에서 앱처럼 보이게 함 (휴대폰 지원은 비목표)
     st.html(  # 스타일만 담은 st.html 은 화면에 자리를 차지하지 않음
         "<style>[data-testid='stMainBlockContainer'] "
-        f"{{ max-width: {APP_WIDTH}px; padding: 76px 16px 48px; }}</style>"  # 위: 맨 위 탭 줄(60) 바로 아래부터 · 아래: 기본 여백(160)을 줄여 빈 스크롤이 없게
+        f"{{ max-width: {APP_WIDTH}px; padding: 76px 16px 48px; }}"  # 위: 맨 위 탭 줄(60) 바로 아래부터 · 아래: 기본 여백(160)을 줄여 빈 스크롤이 없게
+        f"{APP_STYLE}</style>"
     )
+
+
+def badge_text(text):  # 화면2 진행 줄 — "2/3세트"나 "완성"을 남색 꼬리표로 (토스판 2E·2F)
+    return re.sub(r"\d+/\d+세트|완성", lambda m: f'<span class="badge">{m.group()}</span>', html.escape(text), count=1)
 
 
 
@@ -463,22 +517,23 @@ def apply_count_input():  # D-1 세트 수 칸에서 완료(엔터)를 눌렀을
 def count_notice(limit):  # D-1E 세트 수 안내 창 — "확인"을 누르면 D-1 로 돌아감
     @st.dialog(f"세트 수를 0부터 {limit}까지 숫자로 넣어 주세요", dismissible=False)
     def notice():
-        if st.button("확인"):
+        if st.button("확인", key="notice_ok"):
             st.rerun()
 
     notice()
 
 
 @st.dialog("이번 세트는 별이 되지 않아요", dismissible=False)
-def stop_confirm():  # 1-D 그만하기 확인 창 — 창이 떠 있는 동안에도 시간은 흐름
-    left, right = st.columns(2)
-    if left.button("그만하기", width="stretch"):
-        log_event("그만하기")
-        end_set()
-        st.rerun()
-    if right.button("계속하기", type="primary", width="stretch"):
-        st.session_state.confirming = False
-        st.rerun()
+def stop_confirm():  # 1-D 그만하기 확인 창 — 창이 떠 있는 동안에도 시간은 흐름 (달 그림표는 APP_STYLE, 토스판 1D)
+    with st.container(key="stop_confirm"):
+        left, right = st.columns(2)
+        if left.button("그만하기", width="stretch"):
+            log_event("그만하기")
+            end_set()
+            st.rerun()
+        if right.button("계속하기", type="primary", width="stretch"):
+            st.session_state.confirming = False
+            st.rerun()
 
 
 def ask_stop():  # 집중·휴식 중 "그만하기" — 바로 멈추지 않고 확인 창을 띄움
@@ -496,30 +551,32 @@ def running_button(shown):  # 2-D 세트 진행 중 — "다음 세트 시작" �
 
 def waiting():  # 1-A 대기(이번 기간 0세트) · 1-E 대기(1세트 이상) — 지금 목표와 진행, 목표 바꾸기
     goal = current_goal()
-    st.markdown(f"**{progress_text(goal)}**")  # 예: 오리온자리 · 0/3세트 · 오늘
     first = goal["source"] == "추천"  # 추천 목표가 저절로 정해진 첫 기간
     can_change = goal["set_count"] == 0  # 목표 바꾸기는 이번 기간에 마친 세트가 없을 때만
-    if first or can_change:
-        with st.container(horizontal=True, gap="small", vertical_alignment="center"):
-            if first:
-                st.caption("처음이라 추천 목표로 정했어요" + (" ·" if can_change else ""), width="content")
-            if can_change and st.button("목표 바꾸기", type="tertiary"):
-                st.switch_page(goal_page)
-
-    with st.popover("?"):
-        st.write("**뽀모도로 타이머란?**")
-        st.write("25분 집중과 5분 휴식을 반복하여 집중력을 높이는 시간 관리 도구입니다.")
+    with st.container(horizontal=True, vertical_alignment="top"):  # 진행 줄과 안내는 왼쪽, "?" 는 오른쪽 끝 (토스판 1A)
+        with st.container(gap="small"):
+            st.markdown(f"**{progress_text(goal)}**")  # 예: 오리온자리 · 0/3세트 · 오늘
+            if first or can_change:
+                with st.container(horizontal=True, gap="small", vertical_alignment="center"):
+                    if first:
+                        st.caption("처음이라 추천 목표로 정했어요" + (" ·" if can_change else ""), width="content")
+                    if can_change and st.button("목표 바꾸기", type="tertiary"):
+                        st.switch_page(goal_page)
+        with st.popover("?"):
+            st.write("**뽀모도로 타이머란?**")
+            st.write("25분 집중과 5분 휴식을 반복하여 집중력을 높이는 시간 관리 도구입니다.")
 
     timer_dial("대기", 0, set_length())  # 꽉 찬 원과 집중 길이(25:00)
     if goal["set_count"] == 0:
-        st.write("25분 집중하고 5분 쉬면 별이 차오르기 시작해요")
+        st.markdown('<div class="guide">25분 집중하고 5분 쉬면 별이 차오르기 시작해요</div>', unsafe_allow_html=True)
 
-    st.button("시작", type="primary", on_click=start_set)
+    st.button("시작", type="primary", on_click=start_set, width="stretch")
     if st.session_state.pop("goal_save_failed", False):
         st.error("목표를 Supabase 에 저장하지 못했어요. 이 PC 에 남겨 두었다가 다음에 열 때 다시 올릴게요.")
 
 
 def timer_screen():  # 화면1 — 대기 · 집중(1-B) · 휴식(1-C) · 그만하기 확인 창(1-D)이 한 화면 안에서 바뀜
+    app_frame()
     st.title("별모도로")
 
     phase = set_phase()
@@ -528,7 +585,7 @@ def timer_screen():  # 화면1 — 대기 · 집중(1-B) · 휴식(1-C) · 그�
         return
 
     timer_dial(phase[0], set_left(), set_length())  # 원형 타이머는 브라우저 안에서 스스로 줄어듦
-    st.button("그만하기", on_click=ask_stop)
+    st.button("그만하기", on_click=ask_stop, width="stretch")
     if st.session_state.get("confirming"):
         stop_confirm()
 
@@ -566,8 +623,10 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
     night_sky(goal, height=330 if demo else 400)  # 앱 크기 틀(844 높이)에 단추까지 들어가게 · 시연 모드는 넣는 칸 자리만큼 하늘이 낮아짐
     if demo:
         demo_box(goal)
-    st.markdown(f"**{sky_text(goal)}**")  # 예: 오리온자리 · 1/3세트 · 오늘 / 오리온자리 완성 · 덤 별 1개 · 오늘
-    st.write(f"누적 {count}세트 · 총 {focus_time_text(count)} 집중")
+    # 예: 오리온자리 · [1/3세트] · 오늘 / 오리온자리 [완성] · 덤 별 1개 · 오늘 — [ ] 는 남색 꼬리표 (토스판 2E·2F)
+    st.markdown(f'<div class="sky-line">{badge_text(sky_text(goal))}</div>', unsafe_allow_html=True)
+    total = re.sub(r"\d+", r"<b>\g<0></b>", f"누적 {count}세트 · 총 {focus_time_text(count)} 집중")  # 숫자만 굵게
+    st.markdown(f'<div class="sky-sub">{total}</div>', unsafe_allow_html=True)
 
     phase = set_phase()
     if phase is None:
@@ -608,7 +667,7 @@ def card_screen():  # 화면3 — 지금 기간의 별자리 카드 미리보기
 
     app_frame()
     st.title("별모도로")
-    if st.button("←"):
+    if st.button("←", key="back_sky"):
         st.switch_page(sky_page)
 
     demo = st.session_state.get("demo", False)
@@ -668,7 +727,7 @@ def goal_screen():  # 화면0 목표 설정 — 무료 별자리 카드 3장(쉬
 
 def more_screen():  # 화면0-1 별자리 더 보기 — 1라운드는 준비 중 안내만 (더 많은 별자리·한 달·한 해 목표·결제는 발표 뒤에 채움)
     app_frame()
-    if st.button("←"):
+    if st.button("←", key="back_goal"):
         st.switch_page(goal_page)
     st.header("별자리 더 보기")
     st.write("더 많은 별자리와 한 달·한 해 목표를 준비하고 있어요")

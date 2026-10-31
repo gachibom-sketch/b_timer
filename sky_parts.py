@@ -11,7 +11,7 @@ import streamlit as st
 SKY_HTML = '<div class="sky" role="img"></div>'
 
 SKY_CSS = """
-.sky { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: linear-gradient(180deg, #0E1430 0%, #1C2650 100%); }
+.sky { position: relative; width: 100%; border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #0E1430 0%, #1C2650 100%); }
 .board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); aspect-ratio: 1; overflow: visible; }
 .board g.pop { transform-box: fill-box; transform-origin: center; }
 .lit .shape { animation: twinkle var(--twinkle) ease-in-out var(--delay) infinite alternate; }
@@ -238,13 +238,13 @@ def sky_view(constellation, count, target, height, label, empty, arrival=None, b
 
 PAST_CSS = """
 .past-list { display: flex; flex-direction: column; gap: 10px; }
-.past-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #E5E8EB; border-radius: 14px; }
-.past-pic { width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; }
+.past-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #E5E8EB; border-radius: 16px; }
+.past-pic { width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; }
 .past-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.past-name { font-weight: 700; font-size: 15px; color: #31333F; }
-.past-sub { font-size: 13px; color: #5C6270; }
-.past-state { font-size: 13px; color: #31333F; white-space: nowrap; }
-.past-state.done { padding: 2px 8px; border-radius: 999px; background: #33354A; color: #FFFFFF; font-weight: 600; }
+.past-name { font-weight: 700; font-size: 15px; color: #191F28; }
+.past-sub { font-size: 13px; color: #6B7684; }
+.past-state { font-size: 13px; color: #6B7684; white-space: nowrap; }
+.past-state.done { padding: 3px 10px; border-radius: 999px; background: #1C2650; color: #FFE14D; font-weight: 700; }
 """
 
 PAST_JS = """

@@ -110,6 +110,8 @@ spacing:
   space-xl: 2.5rem
 ---
 
+> 2026-10-31: 웹판은 이날부터 [토스판 밝은 규칙](토스판/DESIGN.md)의 색·모양을 씁니다. 이 검정 바탕 규칙과 검정 시안(1A~1F 등)은 기록으로 둡니다.
+
 ## Brand & Style
 
 This design system embodies the solitary focus of deep nighttime work. Designed for knowledge workers, developers, and writers seeking uninterrupted flow, the emotional profile transitions between total stillness, quiet precision, and the vivid clarity of a moonlit workspace. 
