@@ -71,6 +71,25 @@ def sky_text(goal):  # 화면2 진행 줄 — 완성 전에는 progress_text, �
     return f"{name} 완성 · 덤 별 {extra}개 · {when}" if extra else f"{name} 완성 · {when}"
 
 
+def focus_time_text(count):  # 끝까지 마친 세트 × 25분 → "2시간 55분"
+    hours, minutes = divmod(count * 25, 60)
+    if hours and minutes:
+        return f"{hours}시간 {minutes}분"
+    if hours:
+        return f"{hours}시간"
+    return f"{minutes}분"
+
+
+def card_words(goal):  # 화면3 카드의 (제목, 기록 줄) — PRD 6판
+    constellation = BY_KEY[goal["constellation"]]
+    count, target = goal["set_count"], goal["target"]
+    if count >= target:  # 완성 카드 — "북두칠성 완성", "10월 넷째 주 · 7세트 · 집중 2시간 55분"
+        return f"{constellation['name']} 완성", f"{period_label(goal)} · {count}세트 · 집중 {focus_time_text(count)}"
+    lit, _, _ = star_fill(count, target, len(constellation["stars"]))  # 진행 카드 — "북두칠성 · 별 3개", "10월 넷째 주 · 3/7세트"
+    title = f"{constellation['name']} · 별 {lit}개" if lit else f"{constellation['name']} · 첫 별이 차오르는 중"
+    return title, f"{period_label(goal)} · {count}/{target}세트"
+
+
 def past_text(goal):  # 지난 별자리 한 줄의 설명 — 실패라는 말 없이 (PRD 6판: "카시오페이아자리를 별 3개까지 그렸어요")
     if goal["set_count"] >= goal["target"]:
         return "완성했어요"
