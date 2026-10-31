@@ -41,7 +41,8 @@ function chime(name, notes) {
 """
 
 # 원형 타이머: 한 바퀴 = 한 세트, 12시 옆 휴식 조각 60° + 집중 조각 300°, 남은 부분이 12시 쪽으로 줄어듦 (와이어프레임 1-A·1-B·1-C)
-# 색은 토스판 시안 1A·1B (idea/screens/토스판/DESIGN.md) — 남색 원판(지난 시간은 밤하늘이 됨) · 노란 집중 · 무늬 없는 밝은 남색 휴식
+# 색은 "남은 시간만 색" — 지나간 부분은 흰색, 남은 집중은 짙은 남색, 남은 휴식은 밝은 남색 (2026-10-31 가안 · 밤하늘 두 톤, idea/screens/토스판/DESIGN.md)
+# 노랑은 흰 바탕과 1.30:1 이라 원판에 쓰지 않음 · 대기 때만 원 아래에 집중·휴식 범례
 TICKS = "".join(  # 눈금 12개 — 30° 마다 테두리 안쪽으로 짧게
     f'<line x1="{120 + 110 * s:.1f}" y1="{120 - 110 * c:.1f}" x2="{120 + 97 * s:.1f}" y2="{120 - 97 * c:.1f}"></line>'
     for s, c in ((math.sin(math.radians(a)), math.cos(math.radians(a))) for a in range(0, 360, 30))
@@ -59,6 +60,7 @@ DIAL_HTML = f"""
     <circle class="hub" cx="120" cy="120" r="9"></circle>
     <circle class="pin" cx="120" cy="120" r="3.5"></circle>
   </svg>
+  <div class="legend"><span class="key focus-key"></span><span class="focus-text"></span><span class="sep">·</span><span class="key rest-key"></span><span class="rest-text"></span></div>
   <div class="time"></div>
 </div>
 """
@@ -69,11 +71,17 @@ DIAL_CSS = """
 .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #FFE14D; }
 .chip[hidden] { display: none; }
 .face { width: 240px; height: 240px; }
-.track { fill: #0E1430; }
-.focus { fill: #FFE14D; }
-.rest { fill: #576CC4; }
-.ring { fill: none; stroke: #0E1430; stroke-width: 2; }
-.ticks line { stroke: #6B7684; stroke-width: 3; stroke-linecap: round; }
+.track { fill: #FFFFFF; }
+.focus { fill: #1C2650; }
+.rest { fill: #6C7ECB; }
+.ring { fill: none; stroke: #8B95A1; stroke-width: 1.5; }
+.ticks line { stroke: #8B95A1; stroke-width: 2.5; stroke-linecap: round; }
+.legend { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #6B7684; }
+.legend[hidden] { display: none; }
+.key { width: 10px; height: 10px; border-radius: 50%; }
+.focus-key { background: #1C2650; }
+.rest-key { background: #6C7ECB; }
+.sep { margin: 0 4px; }
 .hub { fill: #FFFFFF; stroke: #191F28; stroke-width: 3; }
 .pin { fill: #191F28; }
 .time { font-size: 60px; line-height: 1.1; font-weight: 700; color: #191F28; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -92,6 +100,10 @@ function sector(from, to) {  // from 도에서 to 도까지 시계 방향 부채
   return `M120,120 L${x1},${y1} A110,110 0 ${to - from > 180 ? 1 : 0} 1 ${x2},${y2} Z`;
 }
 
+function span(seconds) {  // 단계 길이 → "25분" · 시연 모드(…/?demo=1)의 휴식 12초는 "12초"
+  return seconds % 60 ? `${seconds}초` : `${seconds / 60}분`;
+}
+
 function clock(seconds) {  // 남은 초 → "12:30"
   const s = Math.max(0, Math.ceil(seconds));
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -102,7 +114,10 @@ export default function (component) {
   parentElement.__stop?.();  // 값이 바뀌어 다시 불리면 앞의 시계를 치움
   unlockSound();
 
-  const [chip, focus, rest, time] = [".chip", ".focus", ".rest", ".time"].map((s) => parentElement.querySelector(s));
+  const [chip, focus, rest, time, legend] = [".chip", ".focus", ".rest", ".time", ".legend"].map((s) => parentElement.querySelector(s));
+  legend.hidden = data.phase !== "대기";  // 범례는 대기 때만 — 밝은 휴식 조각을 "지나간 시간"으로 읽지 않게
+  parentElement.querySelector(".focus-text").textContent = `집중 ${span(data.focus)}`;
+  parentElement.querySelector(".rest-text").textContent = `휴식 ${span(data.rest)}`;
   const total = data.focus + data.rest;
   const restAngle = (data.rest / total) * 360;
   const mountedAt = Date.now();
