@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>별모도로 - 타이머</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,600;0,700;1,700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #000000;
+      color: #EEF0F3;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .font-num {
+      font-family: 'Archivo Narrow', sans-serif;
+      font-feature-settings: "tnum";
+    }
+    .crosshair-corner {
+      position: relative;
+    }
+    .crosshair-corner::before,
+    .crosshair-corner::after {
+      content: '';
+      position: absolute;
+      pointer-events: none;
+    }
+    /* Corner cross marks */
+    .cross-top-left {
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-top-right {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-left {
+      position: absolute;
+      bottom: -8px;
+      left: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-bottom-right {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+    .cross-mark {
+      stroke: #FFEF4D;
+      stroke-width: 1.5;
+    }
+    .glow-yellow {
+      box-shadow: 0 0 16px rgba(255, 239, 77, 0.5);
+    }
+    .glow-text {
+      text-shadow: 0 0 10px rgba(255, 239, 77, 0.4);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-between w-full max-w-[390px] mx-auto relative selection:bg-[#FFEF4D] selection:text-black" style="font-family: 'Noto Sans KR', sans-serif; background-color: #FFFFFF; color: #191F28; margin: 0; padding: 0; width: 100vw; min-height: 100vh; overflow-x: hidden;">
+<!-- Desktop App Container (1440 max / 720 center content) -->
+<div class="w-full min-h-screen flex flex-col items-center bg-[#FFFFFF] px-4 pt-0 pb-28 relative">
+<header class="w-full h-[54px] max-w-[358px] flex items-center justify-between border-b border-[#F2F4F6] shrink-0 sticky top-0 bg-[#FFFFFF]/95 backdrop-blur z-20">
+<div class="flex items-center space-x-2.5">
+<button aria-label="뒤로가기" class="w-8 h-8 flex items-center justify-center -ml-1 text-[#191F28] hover:bg-[#F2F4F6] rounded-full transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M15 18l-6-6 6-6"></path>
+</svg>
+</button>
+<div class="w-6 h-6 rounded-lg bg-[#0E1430] flex items-center justify-center shadow-sm shrink-0">
+<svg class="w-3.5 h-3.5 text-[#FFE14D]" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"></path>
+</svg>
+</div>
+<span class="text-[17px] font-semibold text-[#191F28] tracking-tight">별모도로</span>
+</div>
+<div class="flex items-center space-x-1">
+<button aria-label="더보기" class="w-8 h-8 flex items-center justify-center text-[#191F28] hover:bg-[#F2F4F6] rounded-full transition-colors">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24">
+<circle cx="5" cy="12" r="2"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+<circle cx="19" cy="12" r="2"></circle>
+</svg>
+</button>
+<button aria-label="닫기" class="w-8 h-8 flex items-center justify-center text-[#191F28] hover:bg-[#F2F4F6] rounded-full transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M18 6L6 18M6 6l12 12"></path>
+</svg>
+</button>
+</div>
+</header>
+<main class="w-full max-w-[358px] flex flex-col items-stretch space-y-5 pt-3">
+<div class="flex items-center justify-between w-full pt-1 pb-1">
+<div class="flex flex-col text-left">
+<div class="flex items-center space-x-1.5 text-[16px] font-semibold text-[#191F28]">
+<span>오리온자리</span>
+<span class="text-[#6B7684] text-[14px] font-normal">·</span>
+<span>0/3세트</span>
+<span class="text-[#6B7684] text-[14px] font-normal">·</span>
+<span>오늘</span>
+</div>
+<div class="flex items-center space-x-1 mt-0.5">
+<span class="text-[14px] text-[#6B7684]">처음이라 추천 목표로 정했어요</span>
+<span class="text-[14px] text-[#6B7684]">·</span>
+<button class="text-[14px] text-[#6B7684] underline cursor-pointer hover:text-[#191F28] transition-colors border-none bg-transparent p-0" type="button">목표 바꾸기</button>
+</div>
+</div>
+<button aria-label="도움말" class="w-8 h-8 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] transition-colors flex items-center justify-center text-[#4E5968] font-semibold text-[15px] cursor-pointer shrink-0" type="button">?</button>
+</div>
+<!-- Timer Dial Section -->
+<div class="w-full flex flex-col items-center justify-center pt-2 pb-0">
+<div class="relative flex items-center justify-center" style="width: 240px; height: 240px;">
+<svg class="w-full h-full" viewbox="0 0 240 240">
+<!-- Remaining focus (12 o'clock clockwise to 10 o'clock, 300 degrees) -->
+<path d="M 120 120 L 120 20 A 100 100 0 1 1 33.4 70 Z" fill="#1C2650"></path>
+<!-- Remaining rest (10 o'clock to 12 o'clock, 60 degrees) -->
+<path d="M 120 120 L 33.4 70 A 100 100 0 0 1 120 20 Z" fill="#4C6EF5"></path>
+<!-- Hairline outer rim circle -->
+<circle cx="120" cy="120" fill="none" r="100" stroke="#E5E8EB" stroke-width="1.5"></circle>
+<!-- Sector divider lines -->
+<line opacity="0.8" stroke="#FFFFFF" stroke-linecap="round" stroke-width="1.5" x1="120" x2="120" y1="120" y2="20"></line>
+<line opacity="0.8" stroke="#FFFFFF" stroke-linecap="round" stroke-width="1.5" x1="120" x2="33.4" y1="120" y2="70"></line>
+<!-- 12 Tick Marks -->
+<g opacity="0.65" stroke="#FFFFFF" stroke-linecap="round" stroke-width="1.5">
+<!-- 12 o'clock -->
+<line x1="120" x2="120" y1="22" y2="29"></line>
+<!-- 1 o'clock -->
+<line x1="170" x2="166.5" y1="33.4" y2="39.5"></line>
+<!-- 2 o'clock -->
+<line x1="206.6" x2="200.5" y1="70" y2="73.5"></line>
+<!-- 3 o'clock -->
+<line x1="218" x2="211" y1="120" y2="120"></line>
+<!-- 4 o'clock -->
+<line x1="206.6" x2="200.5" y1="170" y2="166.5"></line>
+<!-- 5 o'clock -->
+<line x1="170" x2="166.5" y1="206.6" y2="200.5"></line>
+<!-- 6 o'clock -->
+<line x1="120" x2="120" y1="218" y2="211"></line>
+<!-- 7 o'clock -->
+<line x1="70" x2="73.5" y1="206.6" y2="200.5"></line>
+<!-- 8 o'clock -->
+<line x1="33.4" x2="39.5" y1="170" y2="166.5"></line>
+<!-- 9 o'clock -->
+<line x1="22" x2="29" y1="120" y2="120"></line>
+<!-- 10 o'clock -->
+<line x1="33.4" x2="39.5" y1="70" y2="73.5"></line>
+<!-- 11 o'clock -->
+<line x1="70" x2="73.5" y1="33.4" y2="39.5"></line>
+</g>
+<!-- Center hub -->
+<circle cx="120" cy="120" fill="#FFFFFF" r="10" stroke="#191F28" stroke-width="3"></circle>
+<circle cx="120" cy="120" fill="#191F28" r="3.5"></circle>
+<!-- FOCUS=#1C2650 REST=#4C6EF5 PASSED=#FFFFFF RIM=#E5E8EB TICKS=#FFFFFF -->
+</svg>
+</div>
+<!-- Dial Legend Line -->
+<div class="flex items-center justify-center space-x-2 mt-4 text-[14px] text-[#6B7684]">
+<div class="flex items-center space-x-1.5">
+<span class="w-[10px] h-[10px] rounded-full bg-[#1C2650] inline-block shrink-0"></span>
+<span>집중 25분</span>
+</div>
+<span class="text-[#6B7684]">·</span>
+<div class="flex items-center space-x-1.5">
+<span class="w-[10px] h-[10px] rounded-full bg-[#4C6EF5] inline-block shrink-0"></span>
+<span>휴식 5분</span>
+</div>
+</div>
+</div>
+<div class="text-center flex flex-col items-center space-y-1 pt-1">
+<div class="text-[64px] font-bold text-[#191F28] tracking-tight leading-none font-num">25 : 00</div>
+<p class="text-[14px] text-[#6B7684] font-normal leading-normal">25분 집중하고 5분 쉬면 별이 차오르기 시작해요</p>
+</div>
+<div class="w-full pt-4">
+<button class="w-full h-[56px] bg-[#1C2650] hover:bg-[#0E1430] active:bg-[#0E1430] active:scale-[0.99] text-[#FFE14D] font-bold text-[17px] rounded-[16px] transition-all flex items-center justify-center cursor-pointer shadow-none border-none" type="button">시작</button>
+</div>
+</main>
+<nav aria-label="하단 탭 메뉴" class="fixed bottom-3 left-4 right-4 max-w-[358px] mx-auto h-[62px] bg-[#FFFFFF] rounded-full border border-[#F2F4F6] flex items-center justify-around px-6 z-30" style="box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+<a class="flex flex-col items-center justify-center text-[#191F28]" href="#">
+<svg class="w-5 h-5 mb-0.5 text-[#191F28]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="9"></circle>
+<polyline points="12 7 12 12 15 15"></polyline>
+</svg>
+<span class="text-[11px] font-bold">타이머</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#6B7684] hover:text-[#191F28] transition-colors" href="#">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"></path>
+</svg>
+<span class="text-[11px] font-medium">밤하늘</span>
+</a>
+</nav>
+</div>
+</body></html>

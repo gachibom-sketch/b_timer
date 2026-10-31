@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html lang="ko" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
+<title>별모도로 - 타이머</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandYellow: '#FFEF4D',
+            brandDark: '#191F28',
+            brandSlate: '#23272F',
+            brandMuted: '#8B95A1',
+            brandText: '#191F28',
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+            mono: ['"Archivo Narrow"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- CSS Styles -->
+<style data-purpose="custom-layout">
+    /* Prevent default elastic scrolling & assure 390x844 mobile viewport */
+    html, body {
+      background-color: #FFFFFF;
+      color: #191F28;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    #app-container {
+      width: 390px;
+      height: 844px;
+      max-height: 844px;
+      position: relative;
+      background-color: #FFFFFF;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+<!-- BEGIN: MainContainer -->
+<div class="flex flex-col justify-between items-center px-0 py-0 relative w-[390px] h-[844px] bg-white select-none" data-purpose="mobile-screen-wrapper" id="app-container">
+<!-- BEGIN: TopSection -->
+<div class="w-full flex flex-col items-center" data-purpose="top-navigation-and-status">
+<!-- Toss Mini-App Navigation Bar (Height 54px, #FFFFFF) -->
+<header class="w-full h-[54px] px-4 flex items-center justify-between border-b border-[#F2F4F6] bg-white z-20">
+<div class="flex items-center gap-2">
+<button class="text-[#191F28] flex items-center justify-center p-1 -ml-1 text-[22px] leading-none font-normal active:opacity-60" type="button">
+<svg fill="none" height="20" stroke="#191F28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" viewbox="0 0 24 24" width="20"><polyline points="15 18 9 12 15 6"></polyline></svg>
+</button>
+<div class="w-6 h-6 rounded-[7px] bg-gradient-to-br from-[#0E1430] to-[#1C2650] flex items-center justify-center shadow-xs">
+<span class="text-[#FFEF4D] text-[11px] leading-none select-none">★</span>
+</div>
+<span class="text-[17px] font-semibold text-[#191F28] tracking-tight ml-0.5">별모도로</span>
+</div>
+<div class="flex items-center gap-3 text-[#191F28]">
+<button class="p-1 text-[20px] leading-none text-[#191F28] active:opacity-60" type="button">
+<svg fill="currentColor" height="20" viewbox="0 0 24 24" width="20"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg>
+</button>
+<button class="p-1 text-[20px] leading-none text-[#191F28] active:opacity-60" type="button">
+<svg fill="none" height="20" stroke="#191F28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="20"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+</header>
+<!-- Status Pill: '집중 중' (#FFF0A0 background, #7A5C00 text) -->
+<div class="mt-5 flex items-center justify-center">
+<div class="px-3.5 py-1 rounded-full bg-[#1C2650] text-[#FFE14D] text-[13px] font-semibold tracking-tight shadow-xs flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#FFE14D]"></span>
+<span>집중 중</span>
+</div>
+</div>
+</div>
+<!-- END: TopSection -->
+<!-- BEGIN: TimerDialSection -->
+<div class="relative flex items-center justify-center w-[250px] h-[250px] my-auto" data-purpose="timer-visual-clock">
+<!-- Clock Face SVG (Clean light mode, 240px diameter) -->
+<svg height="240" viewbox="0 0 240 240" width="240" xmlns="http://www.w3.org/2000/svg"><path d="M 120 120 L 120 20 A 100 100 0 0 1 170 206.6 Z" fill="#FFFFFF"></path><path d="M 120 120 L 170 206.6 A 100 100 0 0 1 33.4 70 Z" fill="#101838"></path><path d="M 120 120 L 33.4 70 A 100 100 0 0 1 120 20 Z" fill="#5064B8"></path><circle cx="120" cy="120" fill="none" r="110" stroke="#E8EDF8" stroke-width="8"></circle><g stroke="#94A6D4" stroke-linecap="round"><line stroke-width="2.5" x1="120.0" x2="120.0" y1="16.0" y2="4.0"></line><line stroke-width="2" x1="211.8" x2="218.7" y1="67.0" y2="63.0"></line><line stroke-width="2" x1="211.8" x2="218.7" y1="173.0" y2="177.0"></line><line stroke-width="2" x1="120.0" x2="120.0" y1="226.0" y2="234.0"></line><line stroke-width="2" x1="28.2" x2="21.3" y1="173.0" y2="177.0"></line><line stroke-width="2" x1="28.2" x2="21.3" y1="67.0" y2="63.0"></line></g><circle cx="120" cy="120" fill="#FFFFFF" r="10" stroke="#191F28" stroke-width="3"></circle><circle cx="120" cy="120" fill="#191F28" r="3.5"></circle><!-- FOCUS=#101838 REST=#5064B8 PASSED=#FFFFFF RIM=#E8EDF8 TICKS=#94A6D4 --></svg>
+</div>
+<!-- END: TimerDialSection -->
+<!-- BEGIN: TimerValueAndStatsSection -->
+<div class="w-full flex flex-col items-center justify-center mt-2 mb-4" data-purpose="time-display-and-sets">
+<div class="font-mono text-[64px] font-bold tracking-tight text-[#191F28] leading-none select-none tabular-nums" data-purpose="digital-countdown-display">
+    12:30
+  </div>
+</div>
+<!-- END: TimerValueAndStatsSection -->
+<!-- BEGIN: BottomControlsSection -->
+<div class="w-full flex flex-col items-center px-4 pb-3 z-10" data-purpose="bottom-action-container">
+<!-- Toss '그만하기' button: 56px height, rounded-2xl, #F2F4F6 bg, #333D4B text, semibold 17px -->
+<button class="w-full h-[56px] rounded-2xl bg-[#F2F4F6] text-[#333D4B] font-semibold text-[17px] flex items-center justify-center transition-colors active:bg-[#E5E8EB] focus:outline-none cursor-pointer mb-4" data-purpose="timer-stop-button" type="button">
+    그만하기
+  </button>
+<!-- Toss Floating Tab Bar: 64px tall, rounded-full, soft shadow, #FFFFFF -->
+<nav aria-label="하단 탭 메뉴" class="w-full h-[64px] rounded-full bg-white flex items-center justify-around px-6 mb-3 border border-[#E5E8EB]/50 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+<!-- Active Tab: 타이머 -->
+<button class="flex flex-col items-center justify-center gap-1 text-[#191F28] cursor-pointer focus:outline-none" type="button">
+<svg fill="none" height="22" stroke="#191F28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="22">
+<circle cx="12" cy="13" r="8"></circle>
+<line x1="12" x2="12" y1="9" y2="13"></line>
+<line x1="12" x2="12" y1="5" y2="2"></line>
+</svg>
+<span class="text-[12px] font-bold leading-none tracking-tight">타이머</span>
+</button>
+<!-- Inactive Tab: 밤하늘 -->
+<button class="flex flex-col items-center justify-center gap-1 text-[#6B7684] hover:text-[#4E5968] cursor-pointer focus:outline-none transition-colors" type="button">
+<svg fill="none" height="22" stroke="#6B7684" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="22">
+<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+</svg>
+<span class="text-[12px] font-medium leading-none tracking-tight">밤하늘</span>
+</button>
+</nav>
+</div>
+<!-- END: BottomControlsSection -->
+</div>
+<!-- END: MainContainer -->
+</body></html>

@@ -40,19 +40,23 @@ function chime(name, notes) {
 }
 """
 
-# 원형 타이머: 한 바퀴 = 한 세트, 12시 옆 휴식 조각 60° + 집중 조각 300°, 남은 부분이 12시 쪽으로 줄어듦 (와이어프레임 1-A·1-B·1-C)
-# 색은 "남은 시간만 색" — 지나간 부분은 흰색, 남은 집중은 짙은 남색, 남은 휴식은 밝은 남색 (2026-10-31 가안 · 밤하늘 두 톤, idea/screens/토스판/DESIGN.md)
+# 원형 타이머: 한 바퀴 = 한 세트, 집중 조각 300°(12시→10시) + 휴식 조각 60°(10시→12시), 남은 부분이 12시 쪽으로 줄어듦
+# 지나간 시간은 시곗바늘처럼 12시에서 시계 방향으로 자람 (2026-10-31 바꿈 — 와이어프레임 1-B 는 반대 방향이었음)
+# 색은 "남은 시간만 색" — 지나간 부분은 흰색, 남은 집중·휴식은 남색 두 톤 + 원 바깥 옅은 남색 고리
+# (2026-10-31 스티치 안 1 · 밤하늘 두 톤, idea/screens/토스판/원판_안_1031/ · 규칙은 idea/screens/토스판/DESIGN.md)
 # 노랑은 흰 바탕과 1.30:1 이라 원판에 쓰지 않음 · 대기 때만 원 아래에 집중·휴식 범례
-TICKS = "".join(  # 눈금 12개 — 30° 마다 테두리 안쪽으로 짧게
-    f'<line x1="{120 + 110 * s:.1f}" y1="{120 - 110 * c:.1f}" x2="{120 + 97 * s:.1f}" y2="{120 - 97 * c:.1f}"></line>'
-    for s, c in ((math.sin(math.radians(a)), math.cos(math.radians(a))) for a in range(0, 360, 30))
+# 눈금은 60° 마다 6개 = 한 칸 5분(시연 모드는 12초) — 휴식은 10시~12시 한 칸, 집중은 다섯 칸. 12개면 한 칸 2.5분이라 벽시계처럼 5분으로 잘못 읽힘
+TICKS = "".join(  # 고리 위의 짧은 선 — 12시(시작이자 끝)만 조금 길고 굵게
+    f'<line x1="{120 + r1 * s:.1f}" y1="{120 - r1 * c:.1f}" x2="{120 + r2 * s:.1f}" y2="{120 - r2 * c:.1f}" stroke-width="{w}"></line>'
+    for a, r1, r2, w in ((a, *((104, 116, 2.5) if a == 0 else (106, 114, 2))) for a in range(0, 360, 60))
+    for s, c in [(math.sin(math.radians(a)), math.cos(math.radians(a)))]
 )
 
 DIAL_HTML = f"""
 <div class="dial">
   <span class="chip"></span>
   <svg class="face" viewBox="0 0 240 240" role="img" aria-label="원형 타이머">
-    <circle class="track" cx="120" cy="120" r="110"></circle>
+    <circle class="track" cx="120" cy="120" r="100"></circle>
     <path class="focus"></path>
     <path class="rest"></path>
     <circle class="ring" cx="120" cy="120" r="110"></circle>
@@ -72,15 +76,15 @@ DIAL_CSS = """
 .chip[hidden] { display: none; }
 .face { width: 240px; height: 240px; }
 .track { fill: #FFFFFF; }
-.focus { fill: #1C2650; }
-.rest { fill: #6C7ECB; }
-.ring { fill: none; stroke: #8B95A1; stroke-width: 1.5; }
-.ticks line { stroke: #8B95A1; stroke-width: 2.5; stroke-linecap: round; }
+.focus { fill: #101838; }
+.rest { fill: #5064B8; }
+.ring { fill: none; stroke: #E8EDF8; stroke-width: 8; }
+.ticks line { stroke: #94A6D4; stroke-linecap: round; }
 .legend { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #6B7684; }
 .legend[hidden] { display: none; }
 .key { width: 10px; height: 10px; border-radius: 50%; }
-.focus-key { background: #1C2650; }
-.rest-key { background: #6C7ECB; }
+.focus-key { background: #101838; }
+.rest-key { background: #5064B8; }
 .sep { margin: 0 4px; }
 .hub { fill: #FFFFFF; stroke: #191F28; stroke-width: 3; }
 .pin { fill: #191F28; }
@@ -88,16 +92,16 @@ DIAL_CSS = """
 """
 
 DIAL_JS = """
-function point(deg) {  // 12시에서 시계 방향으로 deg 도 돈 테두리 위의 점
+function point(deg) {  // 12시에서 시계 방향으로 deg 도 돈 파이 둘레(반지름 100) 위의 점
   const r = (deg * Math.PI) / 180;
-  return [120 + 110 * Math.sin(r), 120 - 110 * Math.cos(r)];
+  return [120 + 100 * Math.sin(r), 120 - 100 * Math.cos(r)];
 }
 
 function sector(from, to) {  // from 도에서 to 도까지 시계 방향 부채꼴
   if (to - from < 0.01) return "";
   const [x1, y1] = point(from);
   const [x2, y2] = point(to);
-  return `M120,120 L${x1},${y1} A110,110 0 ${to - from > 180 ? 1 : 0} 1 ${x2},${y2} Z`;
+  return `M120,120 L${x1},${y1} A100,100 0 ${to - from > 180 ? 1 : 0} 1 ${x2},${y2} Z`;
 }
 
 function span(seconds) {  // 단계 길이 → "25분" · 시연 모드(…/?demo=1)의 휴식 12초는 "12초"
@@ -119,15 +123,15 @@ export default function (component) {
   parentElement.querySelector(".focus-text").textContent = `집중 ${span(data.focus)}`;
   parentElement.querySelector(".rest-text").textContent = `휴식 ${span(data.rest)}`;
   const total = data.focus + data.rest;
-  const restAngle = (data.rest / total) * 360;
+  const focusEnd = (data.focus / total) * 360;  // 집중 조각이 끝나는 자리(10시) — 그 뒤 12시까지가 휴식 조각
   const mountedAt = Date.now();
 
   const draw = () => {
     const left = data.phase === "대기" ? total : Math.max(0, data.remaining - (Date.now() - mountedAt) / 1000);
-    const angle = (left / total) * 360;
+    const passed = 360 - (left / total) * 360;  // 12시에서 시계 방향으로 지나간 만큼
     const inFocus = left > data.rest;
-    focus.setAttribute("d", sector(restAngle, Math.max(restAngle, angle)));
-    rest.setAttribute("d", sector(0, Math.min(restAngle, angle)));
+    focus.setAttribute("d", sector(passed, focusEnd));
+    rest.setAttribute("d", sector(Math.max(passed, focusEnd), 360));
     chip.hidden = data.phase === "대기";  // 대기에는 꼬리표 없음 (토스판 1A)
     chip.textContent = inFocus ? "집중 중" : "휴식 중";
     time.textContent = clock(data.phase === "대기" ? data.focus : inFocus ? left - data.rest : left);
