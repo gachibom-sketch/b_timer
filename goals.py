@@ -63,6 +63,11 @@ def progress_text(goal):  # "오리온자리 · 1/3세트 · 오늘"
     return f"{name} · {goal['set_count']}/{goal['target']}세트 · {PERIOD_WORD[goal['period']]}"
 
 
+def locked_text(goal):  # 화면0 — 이번 기간에 마친 세트가 있어 목표를 바꿀 수 없을 때 "오늘 마친 세트가 있어서 목표는 내일 바꿀 수 있어요"
+    later = {"하루": "내일", "한 주": "다음 주에"}[goal["period"]]
+    return f"{PERIOD_WORD[goal['period']]} 마친 세트가 있어서 목표는 {later} 바꿀 수 있어요"
+
+
 def sky_text(goal):  # 화면2 진행 줄 — 완성 전에는 progress_text, 완성 뒤에는 "오리온자리 완성 · 덤 별 1개 · 오늘" (시안 2F)
     extra = goal["set_count"] - goal["target"]
     if extra < 0:

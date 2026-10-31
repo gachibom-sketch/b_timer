@@ -2,7 +2,8 @@ import streamlit as st
 
 # 화면0 별자리 카드 — 큰 별자리 그림 · 이름 · 목표 한 줄, 누르면 그 별자리를 고름 (스티치 시안 0A, PRD 6판 화면 0)
 # 고른 별자리는 이 화면에 머무는 동안 브라우저가 기억하고, 파이썬에는 {key, token} 으로 알려 줌
-# token 은 "목표 바꾸기"로 들어올 때마다 새로 정함 — 지난번에 고른 값이 남아 있어도 섞이지 않게
+# token 은 화면0 에 새로 들어올 때마다(탭·"목표 바꾸기") 새로 정함 — 지난번에 고른 값이 남아 있어도 섞이지 않게
+# locked 면(세트 중이거나 이번 기간에 마친 세트가 있음) 지금 목표만 골라진 채 카드를 누를 수 없음
 CARDS_HTML = '<div class="cards" role="radiogroup" aria-label="목표 별자리"></div>'
 
 CARDS_CSS = """
@@ -26,6 +27,8 @@ CARDS_CSS = """
 }
 .card[aria-checked="true"] .check { border-color: #33354A; background: #33354A; }
 .card[aria-checked="true"] .check::after { content: ""; width: 10px; height: 5px; margin-top: -3px; border: solid #FFFFFF; border-width: 0 0 2px 2px; transform: rotate(-45deg); }
+.card:disabled { cursor: default; }
+.card:disabled:not([aria-checked="true"]) { opacity: 0.45; border-color: #E5E8EB; }
 """
 
 CARDS_JS = """
@@ -45,7 +48,7 @@ function picture(card) {  // 정사각형 밤하늘에 별자리 — 별 자리�
 
 export default function (component) {
   const { data, parentElement, setStateValue } = component;
-  if (parentElement.__token !== data.token) {  // 이번에 새로 들어옴 — 지금 목표의 별자리부터 골라 둠
+  if (parentElement.__token !== data.token || data.locked) {  // 이번에 새로 들어옴(또는 바꿀 수 없음) — 지금 목표의 별자리부터 골라 둠
     parentElement.__token = data.token;
     parentElement.__picked = data.selected;
   }
@@ -62,7 +65,8 @@ export default function (component) {
       `<span class="text"><span class="name">${card.name}</span>` +
       (card.tag ? `<span class="tag">${card.tag}</span>` : "") +
       `<span class="goal">${card.goal}</span></span><span class="check"></span>`;
-    button.addEventListener("click", () => {
+    button.disabled = data.locked;
+    if (!data.locked) button.addEventListener("click", () => {
       parentElement.__picked = card.key;
       for (const other of box.children) other.setAttribute("aria-checked", String(other === button));
       setStateValue("picked", { key: card.key, token: data.token });
@@ -74,10 +78,10 @@ export default function (component) {
 
 
 # 부품은 쓸 때마다 등록함 — 같은 내용이면 Streamlit 이 조용히 넘어감 (timer_parts.py 와 같음)
-def goal_cards(cards, selected, token):  # cards: 쉬운 것부터 {key, name, goal, tag, stars, lines} · selected: 처음 골라 둘 별자리 → 고른 별자리 key
+def goal_cards(cards, selected, token, locked=False):  # cards: 쉬운 것부터 {key, name, goal, tag, stars, lines} · selected: 처음 골라 둘 별자리 → 고른 별자리 key
     picker = st.components.v2.component("goal_cards", html=CARDS_HTML, css=CARDS_CSS, js=CARDS_JS)
-    result = picker(key="goal_cards", data={"cards": cards, "selected": selected, "token": token}, on_picked_change=lambda: None)
+    result = picker(key="goal_cards", data={"cards": cards, "selected": selected, "token": token, "locked": locked}, on_picked_change=lambda: None)
     picked = getattr(result, "picked", None)
-    if picked and picked.get("token") == token:
+    if picked and picked.get("token") == token and not locked:
         return picked["key"]
     return selected

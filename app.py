@@ -16,6 +16,7 @@ from goals import (
     card_words,
     find_current,
     focus_time_text,
+    locked_text,
     new_goal,
     next_goal,
     past_text,
@@ -503,7 +504,6 @@ def waiting():  # 1-A 대기(이번 기간 0세트) · 1-E 대기(1세트 이상
             if first:
                 st.caption("처음이라 추천 목표로 정했어요" + (" ·" if can_change else ""), width="content")
             if can_change and st.button("목표 바꾸기", type="tertiary"):
-                st.session_state.goal_token = time.time()  # 들어올 때마다 지금 목표의 별자리부터 골라 둠
                 st.switch_page(goal_page)
 
     with st.popover("?"):
@@ -628,14 +628,19 @@ def card_screen():  # 화면3 — 지금 기간의 별자리 카드 미리보기
     )
 
 
-def goal_screen():  # 화면0 목표 설정 — 무료 별자리 카드 3장(쉬운 것부터), 지금 목표가 골라져 있음, 바꾸지 않으려면 위쪽 "타이머" 탭
+def goal_screen():  # 화면0 목표 설정 — 무료 별자리 카드 3장(쉬운 것부터), 지금 목표가 골라져 있음, 위쪽 "목표 설정" 탭이나 화면1 "목표 바꾸기"로 들어옴
     goal = current_goal()
-    if set_phase() is not None or goal["set_count"] > 0:  # 세트 중이거나 이번 기간에 마친 세트가 있으면 바꿀 수 없음 — 주소로 바로 들어와도
-        st.switch_page(timer_page)
+    phase = set_phase()
+    locked = phase is not None or goal["set_count"] > 0  # 세트 중이거나 이번 기간에 마친 세트가 있으면 바꿀 수 없음 — 카드는 보여 주되 누를 수 없음
 
     app_frame()
     st.header("목표를 정해 주세요")
-    st.caption("세트를 마칠 때마다 별자리가 조금씩 차올라요")
+    if phase is not None:
+        st.caption("세트 중에는 목표를 바꿀 수 없어요")
+    elif locked:
+        st.caption(locked_text(goal))  # 예: 오늘 마친 세트가 있어서 목표는 내일 바꿀 수 있어요
+    else:
+        st.caption("세트를 마칠 때마다 별자리가 조금씩 차올라요")
     cards = [
         {
             "key": c["key"],
@@ -647,19 +652,39 @@ def goal_screen():  # 화면0 목표 설정 — 무료 별자리 카드 3장(쉬
         }
         for c in FREE_CONSTELLATIONS
     ]
-    token = st.session_state.setdefault("goal_token", time.time())
-    pick = goal_cards(cards, goal["constellation"], token)
-    if st.button("이 목표로 정하기", type="primary", width="stretch"):
+    token = st.session_state.goal_token
+    kept = st.session_state.get("goal_pick")  # 화면0-1 에 가기 전에 고르던 별자리 — [token, key]
+    start = kept[1] if kept and kept[0] == token and not locked else goal["constellation"]
+    pick = goal_cards(cards, start, token, locked)
+    if st.button("별자리 더 보기", width="stretch"):  # 구경만 하는 화면이라 목표를 바꿀 수 없을 때도 누를 수 있음
+        st.session_state.goal_pick = [token, pick]  # ← 로 돌아오면 고르던 별자리 그대로
+        st.switch_page(more_page)
+    if phase is not None:
+        running_button(phase[0])  # 밤하늘과 같은 남은 시간 단추 — 누르면 진행 중인 화면1로
+    elif not locked and st.button("이 목표로 정하기", type="primary", width="stretch"):
         change_goal(pick)
         st.switch_page(timer_page)
 
 
-timer_page = st.Page(timer_screen, title="타이머", default=True)
-goal_page = st.Page(goal_screen, title="목표 설정", url_path="goal", visibility="hidden")  # 탭에는 없고 "목표 바꾸기"로만 들어옴
+def more_screen():  # 화면0-1 별자리 더 보기 — 1라운드는 준비 중 안내만 (더 많은 별자리·한 달·한 해 목표·결제는 발표 뒤에 채움)
+    app_frame()
+    if st.button("←"):
+        st.switch_page(goal_page)
+    st.header("별자리 더 보기")
+    st.write("더 많은 별자리와 한 달·한 해 목표를 준비하고 있어요")
+    st.write("지금은 무료 별자리 3개로 시작해 보세요")
+
+
+goal_page = st.Page(goal_screen, title="목표 설정", url_path="goal")
+timer_page = st.Page(timer_screen, title="타이머", default=True)  # 처음 들어오면 화면1
 sky_page = st.Page(sky_screen, title="밤하늘", url_path="sky")
 card_page = st.Page(card_screen, title="카드 미리보기", url_path="card", visibility="hidden")  # 탭에는 없고 "카드 만들기"로만 들어옴
+more_page = st.Page(more_screen, title="별자리 더 보기", url_path="more", visibility="hidden")  # 탭에는 없고 화면0 "별자리 더 보기"로만 들어옴
 
-page = st.navigation([timer_page, sky_page, card_page, goal_page], position="top")  # 위쪽 탭: 타이머 · 밤하늘
+page = st.navigation([goal_page, timer_page, sky_page, card_page, more_page], position="top")  # 위쪽 탭: 목표 설정 · 타이머 · 밤하늘
+if page.url_path == "goal" and st.session_state.get("last_page") not in ("goal", "more"):  # 화면0 에 새로 들어올 때마다 지금 목표의 별자리부터 골라 둠 (화면0-1 에서 ← 로 돌아오면 고르던 것 그대로)
+    st.session_state.goal_token = time.time()
+st.session_state.last_page = page.url_path
 sync_browser()  # 브라우저 기록을 먼저 읽어야 탭을 닫기 전 진행 중이던 세트를 이어 갈 수 있음
 finish_if_done(page)
 page.run()
