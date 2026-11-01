@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html lang="ko" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
+<title>별모도로 - 별자리 더 보기</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandYellow: '#FFEF4D',
+            brandDark: '#000000',
+            brandSlate: '#23272F',
+            brandMuted: '#7C828D',
+            brandText: '#EEF0F3',
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+            mono: ['"Archivo Narrow"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- CSS Styles -->
+<style data-purpose="custom-layout">
+    /* Prevent default elastic scrolling & assure 390x844 mobile viewport */
+    html, body {
+      background-color: #000000;
+      color: #EEF0F3;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    #app-container {
+      width: 390px;
+      height: 844px;
+      max-height: 844px;
+      position: relative;
+      background-color: #000000;
+      overflow: hidden;
+    }
+
+    /* Tab glow styling */
+    .active-tab-glow {
+      box-shadow: 0 0 12px rgba(255, 239, 77, 0.45);
+    }
+
+    /* Ambient Dial Glow */
+    .dial-halo-glow {
+      filter: blur(28px);
+      background: radial-gradient(circle, rgba(255, 239, 77, 0.16) 0%, rgba(255, 239, 77, 0.05) 50%, transparent 70%);
+    }
+
+    /* Diagonal stripe pattern for 5-min rest section */
+    .rest-stripe-pattern {
+      fill: url(#diagonalHatch);
+    }
+
+    /* Precision crosshair corner markers for primary button */
+    .crosshair-corner {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+      color: #FFEF4D;
+    }
+    .crosshair-tl { top: -6px; left: -6px; }
+    .crosshair-tr { top: -6px; right: -6px; }
+    .crosshair-bl { bottom: -6px; left: -6px; }
+    .crosshair-br { bottom: -6px; right: -6px; }
+  </style>
+</head>
+<body style="background-color: #FFFFFF; color: #191F28;">
+<!-- BEGIN: MainContainer -->
+<div class="flex flex-col justify-between items-center bg-white" data-purpose="mobile-screen-wrapper" id="app-container" style="background-color: #FFFFFF;"><div class="w-full h-[48px] flex items-center gap-1 px-4 flex-shrink-0">
+<button class="text-[14px] font-normal text-[#6B7684] px-[10px] py-[6px] bg-transparent border-0" type="button">목표 설정</button>
+<button class="text-[14px] font-normal text-[#6B7684] px-[10px] py-[6px] bg-transparent border-0" type="button">타이머</button>
+<button class="text-[14px] font-normal text-[#6B7684] px-[10px] py-[6px] bg-transparent border-0" type="button">밤하늘</button>
+</div>
+<div class="w-full px-4 pt-3 pb-0 flex-shrink-0">
+<button aria-label="뒤로 가기" class="w-10 h-10 rounded-[12px] bg-[#F2F4F6] flex items-center justify-center border-0 cursor-pointer text-[#191F28]" type="button">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18">
+<path d="M19 12H5M12 19l-7-7 7-7"></path>
+</svg>
+</button>
+</div><!-- Top Navigation Bar -->
+<!-- Main Scrollable Content Area -->
+<div class="flex-1 w-full min-h-0 overflow-y-auto px-4 pt-5 pb-3 flex flex-col"><div class="pt-4 mb-6 flex-shrink-0">
+<h1 class="text-[24px] font-bold text-[#191F28] leading-tight tracking-tight text-left">별자리 더 보기</h1>
+</div>
+<div class="w-full h-[260px] rounded-[20px] overflow-hidden relative flex-shrink-0 shadow-sm" style="background: linear-gradient(180deg, #0E1430 0%, #1C2650 100%);">
+<!-- Crescent Moon in upper right with soft golden glow -->
+<div class="absolute top-6 right-8 w-[44px] h-[44px]" style="filter: drop-shadow(0 0 10px rgba(255, 239, 77, 0.5));">
+<svg fill="none" height="44" viewbox="0 0 44 44" width="44">
+<path d="M29 6C23 8.5 19 14.5 19 21.5C19 28.5 23 34.5 29 37C20.5 36.8 13.5 29.8 13.5 21.5C13.5 13.2 20.5 6.2 29 6Z" fill="#FFEF4D"></path>
+</svg>
+</div>
+<!-- Shooting star streak in upper left -->
+<div class="absolute top-7 left-7 w-[72px] h-[1.5px] rounded-full pointer-events-none" style="transform: rotate(-32deg); background: linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.2) 60%, transparent 100%); box-shadow: 0 0 6px rgba(255,255,255,0.8);"></div>
+<!-- 4-point Sparkles -->
+<svg class="absolute top-10 left-24" fill="#FFF8B0" height="12" style="filter: drop-shadow(0 0 4px rgba(255,248,176,0.8));" viewbox="0 0 24 24" width="12">
+<path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"></path>
+</svg>
+<svg class="absolute bottom-16 left-12" fill="#FFFFFF" height="14" style="filter: drop-shadow(0 0 4px rgba(255,255,255,0.8));" viewbox="0 0 24 24" width="14">
+<path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"></path>
+</svg>
+<svg class="absolute top-36 right-28" fill="#FFF8B0" height="10" style="filter: drop-shadow(0 0 3px rgba(255,248,176,0.8));" viewbox="0 0 24 24" width="10">
+<path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"></path>
+</svg>
+<svg class="absolute bottom-8 right-16" fill="#FFFFFF" height="12" style="filter: drop-shadow(0 0 4px rgba(255,255,255,0.8));" viewbox="0 0 24 24" width="12">
+<path d="M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"></path>
+</svg>
+<!-- Scattered stars (1.5px, 2.5px, 4px) -->
+<div class="absolute top-5 left-16 w-[2.5px] h-[2.5px] bg-white rounded-full" style="box-shadow: 0 0 4px #FFFFFF;"></div>
+<div class="absolute top-12 left-44 w-[1.5px] h-[1.5px] bg-white rounded-full" style="box-shadow: 0 0 3px #FFFFFF;"></div>
+<div class="absolute top-8 right-36 w-[4px] h-[4px] bg-white rounded-full" style="box-shadow: 0 0 5px #FFFFFF;"></div>
+<div class="absolute top-20 right-48 w-[2.5px] h-[2.5px] bg-white rounded-full" style="box-shadow: 0 0 4px #FFFFFF;"></div>
+<div class="absolute top-24 left-10 w-[1.5px] h-[1.5px] bg-white rounded-full opacity-80"></div>
+<div class="absolute top-28 left-32 w-[3px] h-[3px] bg-white rounded-full" style="box-shadow: 0 0 4px #FFFFFF;"></div>
+<div class="absolute top-32 right-12 w-[1.5px] h-[1.5px] bg-white rounded-full opacity-70"></div>
+<div class="absolute top-40 left-20 w-[4px] h-[4px] bg-white rounded-full" style="box-shadow: 0 0 5px #FFFFFF;"></div>
+<div class="absolute top-44 left-52 w-[2px] h-[2px] bg-white rounded-full opacity-90"></div>
+<div class="absolute top-36 right-40 w-[1.5px] h-[1.5px] bg-white rounded-full opacity-75"></div>
+<div class="absolute top-48 right-24 w-[2.5px] h-[2.5px] bg-white rounded-full" style="box-shadow: 0 0 4px #FFFFFF;"></div>
+<div class="absolute bottom-20 left-28 w-[1.5px] h-[1.5px] bg-white rounded-full opacity-80"></div>
+<div class="absolute bottom-14 left-44 w-[3px] h-[3px] bg-white rounded-full" style="box-shadow: 0 0 4px #FFFFFF;"></div>
+<div class="absolute bottom-24 right-32 w-[2px] h-[2px] bg-white rounded-full opacity-85"></div>
+<div class="absolute bottom-16 right-52 w-[4px] h-[4px] bg-white rounded-full" style="box-shadow: 0 0 5px #FFFFFF;"></div>
+<div class="absolute bottom-8 left-8 w-[2px] h-[2px] bg-white rounded-full opacity-80"></div>
+<div class="absolute bottom-10 left-36 w-[1.5px] h-[1.5px] bg-white rounded-full opacity-70"></div>
+<div class="absolute bottom-6 left-60 w-[2.5px] h-[2.5px] bg-white rounded-full" style="box-shadow: 0 0 4px #FFFFFF;"></div>
+<div class="absolute bottom-12 right-10 w-[1.5px] h-[1.5px] bg-white rounded-full opacity-75"></div>
+<div class="absolute bottom-4 right-36 w-[2px] h-[2px] bg-white rounded-full opacity-80"></div>
+<div class="absolute bottom-5 right-20 w-[3px] h-[3px] bg-white rounded-full" style="box-shadow: 0 0 4px #FFFFFF;"></div>
+</div>
+<div class="mt-8 flex flex-col items-center text-center flex-shrink-0">
+<p class="text-[18px] font-bold text-[#191F28] leading-[1.45]">
+    더 많은 별자리와<br/>한 달·한 해 목표를 준비하고 있어요
+  </p>
+<p class="mt-2 text-[15px] font-normal text-[#6B7684] leading-normal">
+    지금은 무료 별자리 3개로 시작해 보세요
+  </p>
+</div></div>
+<!-- Bottom Primary CTA Button Section -->
+</div>
+<!-- END: MainContainer -->
+</body></html>
