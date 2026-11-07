@@ -94,9 +94,27 @@ APP_STYLE = """
 .stButton [data-testid='stBaseButton-tertiary'] p { font-size: 14px; font-weight: 400; text-decoration: underline; }
 .stButton [data-testid='stBaseButton-tertiary']:hover { color: #191F28; }
 
-[data-testid='stPopoverButton'] { width: 40px; height: 40px; min-height: 40px; padding: 0; border: none; border-radius: 50%; background: #F2F4F6; color: #4E5968; }
-[data-testid='stPopoverButton'] p { font-size: 17px; font-weight: 700; }
-[data-testid='stPopoverButton'] [data-testid='stIconMaterial'] { display: none; }
+/* 화면1 "?" 단추와 뽀모도로 소개 상자 — 토스판 시안 1F A안 "남색 테두리" (idea/screens/토스판/1F_뽀모도로_설명상자) */
+[data-testid='stPopoverButton'] {
+  width: 28px; height: 28px; min-height: 28px; padding: 0; border: 1.5px solid #1C2650; border-radius: 50%; background: transparent; color: #1C2650;
+}
+[data-testid='stPopoverButton']:hover { background: #F2F4F6; color: #1C2650; border-color: #1C2650; }
+[data-testid='stPopoverButton'][aria-expanded='true'] { background: #1C2650; color: #FFE14D; }  /* 열린 동안 — 남색 바탕 노란 "?" */
+[data-testid='stPopoverButton'] p { font-size: 14px; font-weight: 700; }
+/* 펼침 꺾쇠 자리와 Streamlit 의 안쪽 여백(-5px)을 없애 "?" 가 동그라미 한가운데 오게 */
+[data-testid='stPopoverButton'] div:has([data-testid='stIconMaterial']):not(:has(p)) { display: none; }
+[data-testid='stPopoverButton'] > div { margin: 0; }
+/* Streamlit 은 상자를 "?" 왼쪽 끝에서 오른쪽으로 펼쳐 앱 틀 밖으로 나가므로, 오른쪽 끝을 "?"(28px)에 맞춰 틀 안쪽으로 펼침 */
+[data-testid='stPopoverBody'] {
+  width: 280px; min-width: 0; margin: 4px 0 0 -252px; padding: 20px;
+  border: 1px solid #E5E8EB; border-radius: 16px; box-shadow: 0 8px 24px rgba(14, 20, 48, 0.12);
+}
+[data-testid='stPopoverBody'] [data-testid='stVerticalBlock'] { gap: 8px; }  /* 제목 줄과 본문 사이 (시안 mt-2) */
+[data-testid='stPopoverBody'] [data-testid='stMarkdownContainer'] { margin-bottom: 0; }  /* Streamlit 기본 -16px 가 아래 여백을 먹지 않게 */
+.help-title { font-size: 15px; font-weight: 700; color: #1C2650; }
+.help-body { font-size: 14px; line-height: 1.55; color: #4E5968; word-break: keep-all; }  /* 낱말 중간에서 줄이 끊기지 않게 */
+.st-key-help_close .stButton button { width: 24px; height: 24px; min-height: 24px; padding: 0; }
+.st-key-help_close .stButton button p { font-size: 20px; line-height: 1; text-decoration: none; color: #8B95A1; }
 
 [data-testid='stDialog'] { background: rgba(0, 0, 0, 0.4); }
 [data-testid='stDialog'] > div { border-radius: 20px; }
@@ -549,6 +567,10 @@ def running_button(shown):  # 2-D 세트 진행 중 — "다음 세트 시작" �
         st.switch_page(timer_page)  # 새 세트는 시작하지 않음
 
 
+def close_help():  # 소개 상자의 × — "?" 상자를 닫음
+    st.session_state.help_box = False
+
+
 def waiting():  # 1-A 대기(이번 기간 0세트) · 1-E 대기(1세트 이상) — 지금 목표와 진행, 목표 바꾸기
     goal = current_goal()
     first = goal["source"] == "추천"  # 추천 목표가 저절로 정해진 첫 기간
@@ -562,9 +584,14 @@ def waiting():  # 1-A 대기(이번 기간 0세트) · 1-E 대기(1세트 이상
                         st.caption("처음이라 추천 목표로 정했어요" + (" ·" if can_change else ""), width="content")
                     if can_change and st.button("목표 바꾸기", type="tertiary"):
                         st.switch_page(goal_page)
-        with st.popover("?"):
-            st.write("**뽀모도로 타이머란?**")
-            st.write("25분 집중과 5분 휴식을 반복하여 집중력을 높이는 시간 관리 도구입니다.")
+        with st.popover("?", key="help_box", on_change="rerun"):  # 열림 상태를 help_box 로 다뤄야 × 로 닫을 수 있음
+            with st.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="top"):
+                st.markdown('<div class="help-title">뽀모도로 타이머란?</div>', unsafe_allow_html=True)
+                st.button("×", key="help_close", type="tertiary", on_click=close_help)
+            st.markdown(
+                '<div class="help-body">25분 집중과 5분 휴식을 반복하여 집중력을 높이는 시간 관리 도구입니다.</div>',
+                unsafe_allow_html=True,
+            )
 
     timer_dial("대기", 0, set_length())  # 꽉 찬 원과 집중 길이(25:00)
     if goal["set_count"] == 0:
