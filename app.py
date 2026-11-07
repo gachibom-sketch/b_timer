@@ -113,11 +113,6 @@ APP_STYLE = """
 .sky-sub { text-align: center; font-size: 14px; color: #6B7684; margin-bottom: 12px; }
 .sky-sub b { color: #191F28; }
 .badge { display: inline-block; padding: 1px 10px; border-radius: 8px; background: #1C2650; color: #FFE14D; font-weight: 700; }
-.user-name {
-  position: fixed; top: 0; left: 50%; z-index: 999991; width: 358px; height: 60px; transform: translateX(-50%);
-  display: flex; align-items: center; justify-content: flex-end; pointer-events: none; font-size: 14px; color: #4E5968;
-}
-[data-testid='stElementContainer']:has(.user-name) { position: absolute; }  /* 이름 칸이 화면 줄 사이 간격을 먹지 않게 */
 """.replace("MOON", MOON)
 
 
@@ -795,27 +790,7 @@ sky_page = st.Page(sky_screen, title="밤하늘", url_path="sky")
 card_page = st.Page(card_screen, title="카드 미리보기", url_path="card", visibility="hidden")  # 탭에는 없고 "카드 만들기"로만 들어옴
 more_page = st.Page(more_screen, title="별자리 더 보기", url_path="more", visibility="hidden")  # 탭에는 없고 화면0 "별자리 더 보기"로만 들어옴
 
-def login_screen():  # 화면1 로그인 전 — 원형 타이머와 "구글로 시작하기"만 보이고, 탭과 기록은 로그인한 뒤에 보임 (수용 기준 2번)
-    app_frame()
-    st.title("별모도로")
-    timer_dial("대기", 0, set_length())  # 꽉 찬 원과 집중 길이(25:00)
-    st.markdown('<div class="guide">25분 집중하고 5분 쉬면 별이 차오르기 시작해요</div>', unsafe_allow_html=True)
-    st.button("구글로 시작하기", type="primary", on_click=st.login, args=("google",), width="stretch")  # 구글 로그인 화면으로 넘어감
-
-
-def user_name():  # 위쪽 탭 줄 오른쪽에 들어온 사람의 구글 이름 — 시연 모드는 로그인 없이 들어오므로 이름이 없으면 그리지 않음
-    name = st.user.get("name") or st.user.get("email")
-    if name:
-        st.html(f'<div class="user-name">{html.escape(name)}님</div>')
-
-
-# 구글로 로그인해야 화면이 보임 — 시연 링크(…/?demo=1)만 로그인 없이 들어옴 (수용 기준 19번)
-if not st.user.get("is_logged_in", False) and not st.session_state.demo:
-    st.navigation([st.Page(login_screen, title="타이머", default=True)], position="hidden").run()
-    st.stop()
-
 page = st.navigation([goal_page, timer_page, sky_page, card_page, more_page], position="top")  # 위쪽 탭: 목표 설정 · 타이머 · 밤하늘
-user_name()
 if page.url_path == "goal" and st.session_state.get("last_page") not in ("goal", "more"):  # 화면0 에 새로 들어올 때마다 지금 목표의 별자리부터 골라 둠 (화면0-1 에서 ← 로 돌아오면 고르던 것 그대로)
     st.session_state.goal_token = time.time()
 st.session_state.last_page = page.url_path
