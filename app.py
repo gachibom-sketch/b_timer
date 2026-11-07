@@ -725,13 +725,63 @@ def goal_screen():  # 화면0 목표 설정 — 무료 별자리 카드 3장(쉬
         st.switch_page(timer_page)
 
 
+def svg_url(view, path, fill):  # CSS 바탕 그림으로 쓰는 svg 주소 — st.html 은 svg 요소를 지우므로 바탕 그림으로 그림
+    return (
+        f"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='{view}'%3E"
+        f"%3Cpath fill='{fill.replace('#', '%23')}' d='{path}'/%3E%3C/svg%3E"
+    )
+
+
+# 화면0-1 밤하늘 칸 — 스티치 시안 idea/screens/0-1_별자리_더_보기 그대로 (칸 358 × 260)
+SPARK = "M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"  # 네 갈래로 반짝이는 별
+SOON_MOON = "M29 6C23 8.5 19 14.5 19 21.5C19 28.5 23 34.5 29 37C20.5 36.8 13.5 29.8 13.5 21.5C13.5 13.2 20.5 6.2 29 6Z"
+SOON_SPARKS = (  # (자리, 크기 px, 색 — y 옅은 노랑 · w 흰색)
+    ("top:40px;left:96px", 12, "y"), ("bottom:64px;left:48px", 14, "w"),
+    ("top:144px;right:112px", 10, "y"), ("bottom:32px;right:64px", 12, "w"),
+)
+SOON_STARS = (  # (자리, 지름 px, 빛 번짐 px, 불투명도) — 빛 번짐 0 은 번지지 않는 흐린 별
+    ("top:20px;left:64px", 2.5, 4, 1), ("top:48px;left:176px", 1.5, 3, 1), ("top:32px;right:144px", 4, 5, 1),
+    ("top:80px;right:192px", 2.5, 4, 1), ("top:96px;left:40px", 1.5, 0, 0.8), ("top:112px;left:128px", 3, 4, 1),
+    ("top:128px;right:48px", 1.5, 0, 0.7), ("top:160px;left:80px", 4, 5, 1), ("top:176px;left:208px", 2, 0, 0.9),
+    ("top:144px;right:160px", 1.5, 0, 0.75), ("top:192px;right:96px", 2.5, 4, 1), ("bottom:80px;left:112px", 1.5, 0, 0.8),
+    ("bottom:56px;left:176px", 3, 4, 1), ("bottom:96px;right:128px", 2, 0, 0.85), ("bottom:64px;right:208px", 4, 5, 1),
+    ("bottom:32px;left:32px", 2, 0, 0.8), ("bottom:40px;left:144px", 1.5, 0, 0.7), ("bottom:24px;left:240px", 2.5, 4, 1),
+    ("bottom:48px;right:40px", 1.5, 0, 0.75), ("bottom:16px;right:144px", 2, 0, 0.8), ("bottom:20px;right:80px", 3, 4, 1),
+)
+SOON_STYLE = f"""
+.soon-sky {{ position: relative; margin-top: 8px; height: 260px; border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #0E1430 0%, #1C2650 100%); }}
+.soon-sky span {{ position: absolute; display: block; }}
+.soon-moon {{ top: 24px; right: 32px; width: 44px; height: 44px; background: url("{svg_url('0 0 44 44', SOON_MOON, '#FFEF4D')}") center / contain no-repeat; filter: drop-shadow(0 0 10px rgba(255, 239, 77, 0.5)); }}
+.soon-shoot {{ top: 28px; left: 28px; width: 72px; height: 1.5px; border-radius: 1px; transform: rotate(-32deg); background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.2) 60%, transparent 100%); box-shadow: 0 0 6px rgba(255, 255, 255, 0.8); }}
+.soon-spark-y {{ background: url("{svg_url('0 0 24 24', SPARK, '#FFF8B0')}") center / contain no-repeat; filter: drop-shadow(0 0 4px rgba(255, 248, 176, 0.8)); }}
+.soon-spark-w {{ background: url("{svg_url('0 0 24 24', SPARK, '#FFFFFF')}") center / contain no-repeat; filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8)); }}
+.soon-star {{ border-radius: 50%; background: #FFFFFF; }}
+.soon-text {{ margin-top: 16px; text-align: center; }}
+.soon-title {{ font-size: 18px; font-weight: 700; line-height: 1.45; color: #191F28; }}
+.soon-sub {{ margin-top: 8px; font-size: 15px; color: #6B7684; }}
+"""
+
+
 def more_screen():  # 화면0-1 별자리 더 보기 — 1라운드는 준비 중 안내만 (더 많은 별자리·한 달·한 해 목표·결제는 발표 뒤에 채움)
     app_frame()
     if st.button("←", key="back_goal"):
         st.switch_page(goal_page)
     st.header("별자리 더 보기")
-    st.write("더 많은 별자리와 한 달·한 해 목표를 준비하고 있어요")
-    st.write("지금은 무료 별자리 3개로 시작해 보세요")
+    sparks = "".join(  # 노랑은 밤하늘 칸 안에서만 씀
+        f'<span class="soon-spark-{color}" style="{at};width:{size}px;height:{size}px"></span>' for at, size, color in SOON_SPARKS
+    )
+    stars = "".join(
+        f'<span class="soon-star" style="{at};width:{size}px;height:{size}px;opacity:{alpha}'
+        + (f';box-shadow:0 0 {glow}px #FFFFFF' if glow else "")
+        + '"></span>'
+        for at, size, glow, alpha in SOON_STARS
+    )
+    st.html(  # 별자리 선·이름·자물쇠·가격은 넣지 않음 (PRD 비목표: 잠긴 별자리·유료 화면의 내용)
+        f"<style>{SOON_STYLE}</style>"
+        f'<div class="soon-sky" aria-hidden="true"><span class="soon-moon"></span><span class="soon-shoot"></span>{sparks}{stars}</div>'
+        '<div class="soon-text"><div class="soon-title">더 많은 별자리와<br>한 달·한 해 목표를 준비하고 있어요</div>'
+        '<div class="soon-sub">지금은 무료 별자리 3개로 시작해 보세요</div></div>'
+    )
 
 
 goal_page = st.Page(goal_screen, title="목표 설정", url_path="goal")
