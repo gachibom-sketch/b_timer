@@ -70,7 +70,7 @@ DIAL_HTML = f"""
 """
 
 DIAL_CSS = """
-.dial { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 8px 0; }
+.dial { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 24px 0 32px; }  /* 위: 진행 줄과 띄움 · 아래: "시작"·"그만하기" 와 띄움 (2026-11-07, 시안 1A 간격) */
 .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 999px; background: #1C2650; color: #FFE14D; font-size: 15px; font-weight: 700; }
 .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #FFE14D; }
 .chip[hidden] { display: none; }
