@@ -47,7 +47,7 @@ GOAL_FIELDS = ["constellation", "period", "period_start", "target", "set_count",
 HEADERS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
 KST = timezone(timedelta(hours=9))  # 이벤트 날짜·시각은 한국 시각으로 남김
 DEMO_TESTER = "0"  # 시연 모드 전용 줄 — 실제 테스터 줄과 섞이지 않음 (수용 기준 19번)
-APP_WIDTH = 390  # 앱 크기 틀의 폭(px) — 와이어프레임의 휴대폰 화면(390 × 844)과 같음
+APP_WIDTH = 393  # 앱 크기 틀의 폭(px) — 아이폰 16 화면(393 × 852, CSS 픽셀)에 맞춤 (2026-11-07, 그 전에는 와이어프레임 390 × 844)
 APP_ADDRESS = "btimer.streamlit.app"  # 화면3 카드 하단에 넣는 배포 주소 (2026-10-30 배포)
 
 # 한 세트의 단계별 길이(초) — 시연 모드(…/?demo=1)는 집중 1분 + 휴식 12초
@@ -88,6 +88,8 @@ APP_STYLE = """
 [data-testid='stBaseButton-secondary']:disabled { background: #F2F4F6; color: #B0B8C1; }
 [class*='st-key-quick_'] .stButton button, [class*='st-key-back_'] .stButton button,
 .st-key-demo_off .stButton button, .st-key-notice_ok .stButton button { min-height: 40px; }
+.st-key-quick_row { gap: 8px; }  /* D-1 빠른 값 단추 다섯 개가 틀 폭 393 안에서 한 줄에 들어가게 */
+.st-key-quick_row .stButton button { padding-left: 10px; padding-right: 10px; }
 [class*='st-key-quick_'] .stButton button p, [class*='st-key-back_'] .stButton button p,
 .st-key-demo_off .stButton button p, .st-key-notice_ok .stButton button p { font-size: 15px; font-weight: 500; }
 .stButton [data-testid='stBaseButton-tertiary'] { min-height: 0; padding: 0; color: #6B7684; }
@@ -104,9 +106,9 @@ APP_STYLE = """
 /* 펼침 꺾쇠 자리와 Streamlit 의 안쪽 여백(-5px)을 없애 "?" 가 동그라미 한가운데 오게 */
 [data-testid='stPopoverButton'] div:has([data-testid='stIconMaterial']):not(:has(p)) { display: none; }
 [data-testid='stPopoverButton'] > div { margin: 0; }
-/* Streamlit 은 상자를 "?" 왼쪽 끝에서 오른쪽으로 펼쳐 앱 틀 밖으로 나가므로, 오른쪽 끝을 "?"(28px)에 맞춰 틀 안쪽으로 펼침 */
+/* 상자 오른쪽 끝을 "?"(28px)에 맞춰 틀 안쪽으로 펼침 — 넓은 창에서 왼쪽으로 당기는 것은 app_frame() 의 @media 에서 함 */
 [data-testid='stPopoverBody'] {
-  width: 280px; min-width: 0; margin: 4px 0 0 -252px; padding: 20px;
+  width: 280px; min-width: 0; margin: 4px 0 0; padding: 20px;
   border: 1px solid #E5E8EB; border-radius: 16px; box-shadow: 0 8px 24px rgba(14, 20, 48, 0.12);
 }
 [data-testid='stPopoverBody'] [data-testid='stVerticalBlock'] { gap: 8px; }  /* 제목 줄과 본문 사이 (시안 mt-2) */
@@ -137,7 +139,14 @@ def app_frame():  # 화면을 휴대폰 앱 크기의 한 줄 틀에 담고 앱 
     st.html(  # 스타일만 담은 st.html 은 화면에 자리를 차지하지 않음
         "<style>[data-testid='stMainBlockContainer'] "
         f"{{ max-width: {APP_WIDTH}px; padding: 76px 16px 48px; }}"  # 위: 맨 위 탭 줄(60) 바로 아래부터 · 아래: 기본 여백(160)을 줄여 빈 스크롤이 없게
-        f"{APP_STYLE}</style>"
+        f"{APP_STYLE}"
+        # 화면1 "?" 상자(폭 280) — Streamlit 은 오른쪽 자리가 넉넉하면 "?" 왼쪽 끝에, 모자라면 "?" 오른쪽 끝에 맞춰 펼침.
+        # 넉넉한 창(틀 폭 + 2 × (280 − "?" 28 − 틀 여백 16) 이상)에서만 왼쪽으로 당겨 오른쪽 끝을 "?" 에 맞춤 — 아이폰 16 폭(393)에서는 당기지 않음.
+        # 경계 바로 위 16px 구간은 Streamlit 이 창 끝에서 8px 띄우려고 상자를 조금 밀어 두므로 그만큼 덜 당김 (최대 252px)
+        # APP_STYLE 의 기본 margin 보다 뒤에 둬야 이김
+        f"@media (min-width: {APP_WIDTH + 2 * (280 - 28 - 16)}px) {{ [data-testid='stPopoverBody'] "
+        f"{{ margin-left: max(-252px, calc(({APP_WIDTH}px - 100vw) / 2 - 8px)); }} }}"
+        "</style>"
     )
 
 
@@ -631,7 +640,7 @@ def demo_box(goal):  # D-1 시연 모드 칸 — 이번 기간 세트 수 바꾸
             label_visibility="collapsed",
         )
         quick = [("0", 0), ("절반", (target + 1) // 2), ("목표 직전", target - 1), ("완성", target), ("덤 별 +3", target + 3)]
-        with st.container(horizontal=True, gap="small"):  # 앱 폭이 좁아 빠른 값 단추는 칸 아래에 이어서 둠
+        with st.container(horizontal=True, gap="small", key="quick_row"):  # 빠른 값 단추는 칸 아래 한 줄 — 간격은 APP_STYLE 에서 좁혀 아이폰 16 폭(393)에 다섯 개가 들어가게
             for label, value in quick:
                 st.button(label, key=f"quick_{label}", on_click=demo_set_goal, args=(value,))
 
@@ -643,7 +652,7 @@ def sky_screen():  # 화면2 — 0세트(2-A) · 1세트 이상(2-B) · 세트 �
     goal = current_goal()
     count = current_count()
     demo = st.session_state.get("demo", False)
-    night_sky(goal, height=330 if demo else 400)  # 앱 크기 틀(844 높이)에 단추까지 들어가게 · 시연 모드는 넣는 칸 자리만큼 하늘이 낮아짐
+    night_sky(goal, height=338 if demo else 408)  # 앱 크기 틀(아이폰 16, 852 높이)에 단추까지 들어가게 · 시연 모드는 넣는 칸 자리만큼 하늘이 낮아짐
     if demo:
         demo_box(goal)
     # 예: 오리온자리 · [1/3세트] · 오늘 / 오리온자리 [완성] · 덤 별 1개 · 오늘 — [ ] 는 남색 꼬리표 (토스판 2E·2F)
@@ -755,7 +764,7 @@ def svg_url(view, path, fill):  # CSS 바탕 그림으로 쓰는 svg 주소 — 
     )
 
 
-# 화면0-1 밤하늘 칸 — 스티치 시안 idea/screens/0-1_별자리_더_보기 그대로 (칸 358 × 260)
+# 화면0-1 밤하늘 칸 — 스티치 시안 idea/screens/0-1_별자리_더_보기 그대로 (칸 높이 260, 폭은 틀 안쪽 361)
 SPARK = "M12 0L14.2 9.8L24 12L14.2 14.2L12 24L9.8 14.2L0 12L9.8 9.8L12 0Z"  # 네 갈래로 반짝이는 별
 SOON_MOON = "M29 6C23 8.5 19 14.5 19 21.5C19 28.5 23 34.5 29 37C20.5 36.8 13.5 29.8 13.5 21.5C13.5 13.2 20.5 6.2 29 6Z"
 SOON_SPARKS = (  # (자리, 크기 px, 색 — y 옅은 노랑 · w 흰색)
