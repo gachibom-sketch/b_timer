@@ -4,3 +4,5 @@ streamlit==1.65.0  # 화면 전체
 requests==2.34.2  # Supabase 에 기록을 보내고 읽음
 python-dotenv==1.2.4  # 내 컴퓨터에서 .env 의 비밀 값을 읽음 (배포 서버에서는 배포 설정의 비밀 값을 씀)
 pillow==12.3.0  # 화면3 카드 그림(PNG)을 그림
+Authlib==1.9.5  # st.login 으로 구글 로그인을 함 (Streamlit 이 로그인에 쓰는 부품)
+httpx==0.28.1  # st.login 이 구글과 주고받을 때 씀 (Authlib 과 짝)
