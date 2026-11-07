@@ -126,7 +126,6 @@ APP_STYLE = """
   background: #1C2650 url("MOON") center / 28px no-repeat;
 }
 
-.guide { text-align: center; color: #6B7684; font-size: 15px; margin-bottom: 12px; }
 .sky-line { text-align: center; font-size: 18px; font-weight: 700; color: #191F28; }
 .sky-sub { text-align: center; font-size: 14px; color: #6B7684; margin-bottom: 12px; }
 .sky-sub b { color: #191F28; }
@@ -593,10 +592,7 @@ def waiting():  # 1-A 대기(이번 기간 0세트) · 1-E 대기(1세트 이상
                 unsafe_allow_html=True,
             )
 
-    timer_dial("대기", 0, set_length())  # 꽉 찬 원과 집중 길이(25:00)
-    if goal["set_count"] == 0:
-        st.markdown('<div class="guide">25분 집중하고 5분 쉬면 별이 차오르기 시작해요</div>', unsafe_allow_html=True)
-
+    timer_dial("대기", 0, set_length())  # 꽉 찬 원과 집중 길이(25:00) — 시작 단추 위 안내 문구는 2026-11-07 사용자 요청으로 뺌
     st.button("시작", type="primary", on_click=start_set, width="stretch")
     if st.session_state.pop("goal_save_failed", False):
         st.error("목표를 Supabase 에 저장하지 못했어요. 이 PC 에 남겨 두었다가 다음에 열 때 다시 올릴게요.")
