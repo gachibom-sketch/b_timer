@@ -607,11 +607,17 @@ def waiting():  # 1-A 대기(이번 기간 0세트) · 1-E 대기(1세트 이상
         st.error("목표를 Supabase 에 저장하지 못했어요. 이 PC 에 남겨 두었다가 다음에 열 때 다시 올릴게요.")
 
 
+ONBOARDING_VIDEO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "소개영상.mp4")  # 30초 사용법 소개 영상 (demo_deck 에서 만듦)
+
+
 def timer_screen():  # 화면1 — 대기 · 집중(1-B) · 휴식(1-C) · 그만하기 확인 창(1-D)이 한 화면 안에서 바뀜
     app_frame()
+    phase = set_phase()
+    # 온보딩 안내 — 처음 온 사람(추천 목표가 저절로 정해진 첫 기간)의 대기 화면 맨 위에만 소개 영상을 보여 줌
+    if phase is None and current_goal()["source"] == "추천" and os.path.exists(ONBOARDING_VIDEO):
+        st.video(ONBOARDING_VIDEO)
     st.title("별모도로")
 
-    phase = set_phase()
     if phase is None:
         waiting()
         return
