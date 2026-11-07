@@ -19,5 +19,3 @@ venv/
 # 윈도우가 폴더마다 저절로 만드는 파일
 Thumbs.db
 desktop.ini
-
-.streamlit/secrets.toml
